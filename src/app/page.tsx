@@ -1,65 +1,120 @@
-import Image from "next/image";
+'use client';
+
+import React from 'react';
+import { useAppStore } from '@/store/useAppStore';
+import Timeline from '@/components/Timeline';
+import IncomeChart from '@/components/IncomeChart';
+import InputPanel from '@/components/InputPanel';
+import ExportButton from '@/components/ExportButton';
 
 export default function Home() {
+  const store = useAppStore();
+  const currentYear = new Date().getFullYear();
+  const selfPerson = store.persons.find((p) => p.relation === 'self');
+  const currentAge = selfPerson ? currentYear - selfPerson.birthYear : 0;
+
+  if (!store.loaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-400">読み込み中...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-[1800px] mx-auto px-4 py-3 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-gray-800">
+              Career Life Plan
+            </h1>
+            <p className="text-xs text-gray-500">
+              キャリアアドバイザー向けライフプラン年表
+            </p>
+          </div>
+          <ExportButton />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+      </header>
+
+      <div className="max-w-[1800px] mx-auto p-4">
+        <div className="flex gap-4">
+          {/* Left: Input Panel */}
+          <div className="w-[340px] flex-shrink-0">
+            <InputPanel
+              persons={store.persons}
+              scenarios={store.scenarios}
+              lifeEvents={store.lifeEvents}
+              skills={store.skills}
+              memos={store.memos}
+              activeScenarioIds={store.activeScenarioIds}
+              onAddPerson={store.addPerson}
+              onRemovePerson={store.removePerson}
+              onAddScenario={store.addScenario}
+              onRemoveScenario={store.removeScenario}
+              onToggleScenario={store.toggleScenarioActive}
+              onAddCareerBlock={store.addCareerBlock}
+              onRemoveCareerBlock={store.removeCareerBlock}
+              onAddLifeEvent={store.addLifeEvent}
+              onRemoveLifeEvent={store.removeLifeEvent}
+              onAddSkill={store.addSkill}
+              onRemoveSkill={store.removeSkill}
+              onAddMemo={store.addMemo}
+              onRemoveMemo={store.removeMemo}
+              onLoadSample={store.loadSampleData}
+              onResetAll={store.resetAll}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+
+          {/* Right: Timeline + Charts */}
+          <div className="flex-1 min-w-0 space-y-4">
+            {store.persons.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                <div className="text-4xl mb-4">📋</div>
+                <h2 className="text-lg font-bold text-gray-700 mb-2">
+                  ライフプランを作成しましょう
+                </h2>
+                <p className="text-sm text-gray-500 mb-6">
+                  左パネルから家族情報を追加するか、サンプルデータを読み込んでください。
+                </p>
+                <button
+                  onClick={store.loadSampleData}
+                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                >
+                  サンプルデータを読み込む
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Timeline */}
+                <Timeline
+                  persons={store.persons}
+                  scenarios={store.scenarios}
+                  activeScenarioIds={store.activeScenarioIds}
+                  lifeEvents={store.lifeEvents}
+                  skills={store.skills}
+                  memos={store.memos}
+                  currentYear={currentYear}
+                />
+
+                {/* Charts */}
+                {store.scenarios.length > 0 &&
+                  store.activeScenarioIds.length > 0 && (
+                    <div id="charts-export">
+                      <IncomeChart
+                        scenarios={store.scenarios}
+                        activeScenarioIds={store.activeScenarioIds}
+                        lifeEvents={store.lifeEvents}
+                        currentAge={currentAge}
+                      />
+                    </div>
+                  )}
+              </>
+            )}
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
