@@ -99,26 +99,29 @@ export default function Home() {
   // Empty state
   if (store.persons.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center">
-          <div className="text-5xl mb-4">📊</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Career Life Plan</h1>
-          <p className="text-sm text-gray-500 mb-8">
-            キャリアアドバイザー向けのライフプラン作成ツール。<br />
-            収入・支出・資産をタイムラインで可視化します。
+      <div className="min-h-screen bg-gradient-to-b from-sky-100 to-white flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-xl max-w-md w-full p-10 text-center">
+          <div className="text-6xl mb-4">🌈</div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">ライフプランをつくろう</h1>
+          <p className="text-sm text-gray-500 mb-2">
+            あなたの人生を「見える化」するツールです。
+          </p>
+          <p className="text-xs text-gray-400 mb-8">
+            お金のこと、仕事のこと、将来のこと——<br />
+            ぜんぶまとめてタイムラインで見られます。
           </p>
           <div className="space-y-3">
             <button
               onClick={() => setShowWizard(true)}
-              className="w-full py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors font-medium text-sm"
+              className="w-full py-4 bg-sky-500 text-white rounded-2xl hover:bg-sky-600 transition-all font-bold text-base shadow-lg shadow-sky-200"
             >
-              新しいプランを作成する
+              はじめる →
             </button>
             <button
               onClick={store.loadSampleData}
-              className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors text-sm"
+              className="w-full py-3 bg-gray-100 text-gray-600 rounded-2xl hover:bg-gray-200 transition-colors text-sm"
             >
-              サンプルデータで試してみる
+              まずはサンプルを見てみる
             </button>
           </div>
         </div>
@@ -133,12 +136,12 @@ export default function Home() {
       <header className="bg-white shadow-sm border-b sticky top-0 z-30">
         <div className="max-w-[1800px] mx-auto px-4 py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-lg">📊</span>
+            <span className="text-xl">🌈</span>
             <div>
-              <h1 className="text-base font-bold text-gray-800">Career Life Plan</h1>
+              <h1 className="text-base font-bold text-gray-800">ライフプラン</h1>
               {selfPerson && (
                 <p className="text-xs text-gray-400">
-                  {selfPerson.name}さん（{currentAge}歳）のライフプラン
+                  {selfPerson.name}さん（{currentAge}歳）の人生設計
                 </p>
               )}
             </div>
