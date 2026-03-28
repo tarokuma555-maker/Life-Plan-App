@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   Person,
   Scenario,
@@ -49,6 +49,14 @@ export default function Timeline({
   const activeScenarios = scenarios.filter((s) =>
     activeScenarioIds.includes(s.id)
   );
+
+  // Auto-scroll to current age on mount
+  useEffect(() => {
+    if (scrollRef.current && selfPerson) {
+      const scrollTarget = Math.max(0, currentAge * CELL_WIDTH - scrollRef.current.clientWidth / 3);
+      scrollRef.current.scrollLeft = scrollTarget;
+    }
+  }, [selfPerson, currentAge]);
 
   return (
     <div id="timeline-export" className="bg-white rounded-xl shadow-lg p-4 overflow-hidden">
