@@ -6,6 +6,7 @@ import Timeline from '@/components/Timeline';
 import IncomeChart from '@/components/IncomeChart';
 import InputPanel from '@/components/InputPanel';
 import ExportButton from '@/components/ExportButton';
+import RetirementAnalysis from '@/components/RetirementAnalysis';
 
 export default function Home() {
   const store = useAppStore();
@@ -27,12 +28,8 @@ export default function Home() {
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-[1800px] mx-auto px-4 py-3 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-800">
-              Career Life Plan
-            </h1>
-            <p className="text-xs text-gray-500">
-              キャリアアドバイザー向けライフプラン年表
-            </p>
+            <h1 className="text-xl font-bold text-gray-800">Career Life Plan</h1>
+            <p className="text-xs text-gray-500">キャリアアドバイザー向け ライフプラン年表（34カテゴリ対応）</p>
           </div>
           <ExportButton />
         </div>
@@ -41,14 +38,19 @@ export default function Home() {
       <div className="max-w-[1800px] mx-auto p-4">
         <div className="flex gap-4">
           {/* Left: Input Panel */}
-          <div className="w-[340px] flex-shrink-0">
+          <div className="w-[380px] flex-shrink-0">
             <InputPanel
               persons={store.persons}
               scenarios={store.scenarios}
               lifeEvents={store.lifeEvents}
               skills={store.skills}
               memos={store.memos}
+              housingLoans={store.housingLoans}
+              recurringExpenses={store.recurringExpenses}
+              investmentAccounts={store.investmentAccounts}
+              macroAssumptions={store.macroAssumptions}
               activeScenarioIds={store.activeScenarioIds}
+              manualCheckmarks={store.manualCheckmarks}
               onAddPerson={store.addPerson}
               onRemovePerson={store.removePerson}
               onAddScenario={store.addScenario}
@@ -62,6 +64,14 @@ export default function Home() {
               onRemoveSkill={store.removeSkill}
               onAddMemo={store.addMemo}
               onRemoveMemo={store.removeMemo}
+              onAddHousingLoan={store.addHousingLoan}
+              onRemoveHousingLoan={store.removeHousingLoan}
+              onAddRecurringExpense={store.addRecurringExpense}
+              onRemoveRecurringExpense={store.removeRecurringExpense}
+              onAddInvestmentAccount={store.addInvestmentAccount}
+              onRemoveInvestmentAccount={store.removeInvestmentAccount}
+              onSetMacroAssumptions={store.setMacroAssumptions}
+              onToggleCheckmark={store.toggleCheckmark}
               onLoadSample={store.loadSampleData}
               onResetAll={store.resetAll}
             />
@@ -72,16 +82,9 @@ export default function Home() {
             {store.persons.length === 0 ? (
               <div className="bg-white rounded-xl shadow-lg p-12 text-center">
                 <div className="text-4xl mb-4">📋</div>
-                <h2 className="text-lg font-bold text-gray-700 mb-2">
-                  ライフプランを作成しましょう
-                </h2>
-                <p className="text-sm text-gray-500 mb-6">
-                  左パネルから家族情報を追加するか、サンプルデータを読み込んでください。
-                </p>
-                <button
-                  onClick={store.loadSampleData}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
-                >
+                <h2 className="text-lg font-bold text-gray-700 mb-2">ライフプランを作成しましょう</h2>
+                <p className="text-sm text-gray-500 mb-6">左パネルから家族情報を追加するか、サンプルデータを読み込んでください。</p>
+                <button onClick={store.loadSampleData} className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium">
                   サンプルデータを読み込む
                 </button>
               </div>
@@ -95,21 +98,36 @@ export default function Home() {
                   lifeEvents={store.lifeEvents}
                   skills={store.skills}
                   memos={store.memos}
+                  housingLoans={store.housingLoans}
+                  recurringExpenses={store.recurringExpenses}
                   currentYear={currentYear}
                 />
 
                 {/* Charts */}
-                {store.scenarios.length > 0 &&
-                  store.activeScenarioIds.length > 0 && (
-                    <div id="charts-export">
-                      <IncomeChart
+                {store.scenarios.length > 0 && store.activeScenarioIds.length > 0 && (
+                  <div id="charts-export">
+                    <IncomeChart
+                      scenarios={store.scenarios}
+                      activeScenarioIds={store.activeScenarioIds}
+                      lifeEvents={store.lifeEvents}
+                      housingLoans={store.housingLoans}
+                      recurringExpenses={store.recurringExpenses}
+                      investmentAccounts={store.investmentAccounts}
+                      currentAge={currentAge}
+                    />
+
+                    {/* Retirement Analysis */}
+                    <div className="mt-6">
+                      <RetirementAnalysis
                         scenarios={store.scenarios}
                         activeScenarioIds={store.activeScenarioIds}
-                        lifeEvents={store.lifeEvents}
+                        investmentAccounts={store.investmentAccounts}
+                        macroAssumptions={store.macroAssumptions}
                         currentAge={currentAge}
                       />
                     </div>
-                  )}
+                  </div>
+                )}
               </>
             )}
           </div>
