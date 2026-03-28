@@ -9,10 +9,8 @@ interface WizardFlowProps {
 }
 
 export interface WizardData {
-  // 1. 自分のこと
   name: string;
   birthYear: number;
-  // 2. 家族
   hasSpouse: boolean;
   spouseName: string;
   spouseBirthYear: number;
@@ -20,7 +18,6 @@ export interface WizardData {
   children: { name: string; birthYear: number }[];
   planMoreChildren: boolean;
   moreChildrenCount: number;
-  // 3. 仕事
   workStyle: WorkStyle;
   company: string;
   position: string;
@@ -34,14 +31,12 @@ export interface WizardData {
   retireAge: number;
   expectRetirementBonus: boolean;
   retirementBonus: number;
-  // 4. 住まい
   currentlyRenting: boolean;
   monthlyRent: number;
   planBuyHouse: boolean;
   houseBuyAge: number;
   housePrice: number;
   houseDownPayment: number;
-  // 5. お金
   monthlySaving: number;
   hasNisa: boolean;
   nisaMonthly: number;
@@ -57,7 +52,6 @@ export interface WizardData {
   hasDebt: boolean;
   debtAmount: number;
   debtMonthly: number;
-  // 6. ライフイベント
   planWedding: boolean;
   weddingAge: number;
   weddingCost: number;
@@ -86,12 +80,12 @@ const DEFAULTS: WizardData = {
 };
 
 const STEPS = [
-  { emoji: '👤', title: 'あなたのこと', color: 'sky' },
-  { emoji: '👨‍👩‍👧', title: '家族について', color: 'pink' },
-  { emoji: '💼', title: '仕事について', color: 'amber' },
-  { emoji: '🏠', title: '住まいについて', color: 'green' },
-  { emoji: '💰', title: 'お金のこと', color: 'violet' },
-  { emoji: '🎉', title: '将来のイベント', color: 'orange' },
+  { emoji: '👤', title: '基本情報', color: 'sky' },
+  { emoji: '👨‍👩‍👧', title: '家族構成', color: 'pink' },
+  { emoji: '💼', title: 'キャリア', color: 'amber' },
+  { emoji: '🏠', title: '住まい', color: 'green' },
+  { emoji: '💰', title: '家計・資産形成', color: 'violet' },
+  { emoji: '📅', title: '将来のライフイベント', color: 'orange' },
 ];
 
 export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
@@ -109,8 +103,8 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
       <div className="sticky top-0 z-10 bg-white/90 backdrop-blur border-b">
         <div className="max-w-lg mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-400">{step + 1} / {STEPS.length}</span>
-            <button onClick={onSkip} className="text-xs text-gray-400 hover:text-gray-600 underline">サンプルで見る</button>
+            <span className="text-xs text-gray-400">ステップ {step + 1} / {STEPS.length}</span>
+            <button onClick={onSkip} className="text-xs text-gray-400 hover:text-gray-600 underline">サンプルを確認する</button>
           </div>
           <div className="flex gap-1">
             {STEPS.map((_, i) => (
@@ -128,41 +122,41 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
       <div className="max-w-lg mx-auto px-4 py-6">
         <div className="space-y-5">
 
-          {/* ===== Step 0: 自分のこと ===== */}
+          {/* ===== Step 0: 基本情報 ===== */}
           {step === 0 && <>
-            <Q label="お名前を教えてください">
-              <Input value={d.name} onChange={(v) => u({ name: v })} placeholder="やまだ たろう" autoFocus />
+            <Q label="お名前">
+              <Input value={d.name} onChange={(v) => u({ name: v })} placeholder="山田 太郎" autoFocus />
             </Q>
-            <Q label="生まれた年は？" hint={`→ 今${age}歳`}>
+            <Q label="生年" hint={`現在 ${age}歳`}>
               <Num value={d.birthYear} onChange={(v) => u({ birthYear: v })} suffix="年生まれ" />
             </Q>
-            <Q label="何歳まで働きたいですか？">
-              <Num value={d.retireAge} onChange={(v) => u({ retireAge: v })} suffix="歳まで" />
+            <Q label="何歳まで働く予定ですか？">
+              <Num value={d.retireAge} onChange={(v) => u({ retireAge: v })} suffix="歳" />
             </Q>
           </>}
 
-          {/* ===== Step 1: 家族 ===== */}
+          {/* ===== Step 1: 家族構成 ===== */}
           {step === 1 && <>
-            <Q label="パートナー（配偶者・恋人）はいますか？">
+            <Q label="配偶者・パートナーはいますか？">
               <YesNo value={d.hasSpouse} onChange={(v) => u({ hasSpouse: v })} />
             </Q>
             {d.hasSpouse && <>
-              <Q label="パートナーのお名前">
-                <Input value={d.spouseName} onChange={(v) => u({ spouseName: v })} placeholder="はなこ" />
+              <Q label="パートナーの氏名">
+                <Input value={d.spouseName} onChange={(v) => u({ spouseName: v })} placeholder="山田 花子" />
               </Q>
-              <Q label="パートナーの生まれた年">
+              <Q label="パートナーの生年">
                 <Num value={d.spouseBirthYear} onChange={(v) => u({ spouseBirthYear: v })} suffix="年" />
               </Q>
-              <Q label="パートナーの年収は？（万円/年）" hint="わからなければ0でOK">
+              <Q label="パートナーの年収（万円）" hint="不明な場合は0で構いません">
                 <Num value={d.spouseIncome} onChange={(v) => u({ spouseIncome: v })} suffix="万円/年" />
               </Q>
             </>}
 
-            <Q label="お子さまはいますか？">
+            <Q label="お子さまについて">
               {d.children.map((c, i) => (
                 <div key={i} className="flex gap-2 items-center mb-2">
-                  <Input value={c.name} onChange={(v) => { const ch = [...d.children]; ch[i] = { ...ch[i], name: v }; u({ children: ch }); }} placeholder="お名前" />
-                  <Num value={c.birthYear} onChange={(v) => { const ch = [...d.children]; ch[i] = { ...ch[i], birthYear: v }; u({ children: ch }); }} suffix={`年 (${currentYear - c.birthYear}歳)`} />
+                  <Input value={c.name} onChange={(v) => { const ch = [...d.children]; ch[i] = { ...ch[i], name: v }; u({ children: ch }); }} placeholder="氏名" />
+                  <Num value={c.birthYear} onChange={(v) => { const ch = [...d.children]; ch[i] = { ...ch[i], birthYear: v }; u({ children: ch }); }} suffix={`年（${currentYear - c.birthYear}歳）`} />
                   <button onClick={() => u({ children: d.children.filter((_, j) => j !== i) })} className="text-red-400 hover:text-red-600 text-lg px-2">×</button>
                 </div>
               ))}
@@ -170,11 +164,11 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
             </Q>
 
             {d.children.length === 0 && (
-              <Q label="今後、子どもを持つ予定はありますか？">
+              <Q label="今後お子さまの予定はありますか？">
                 <YesNo value={d.planMoreChildren} onChange={(v) => u({ planMoreChildren: v })} />
                 {d.planMoreChildren && (
                   <div className="mt-3">
-                    <label className="text-xs text-gray-500">何人くらい？</label>
+                    <label className="text-xs text-gray-500">何人の予定ですか？</label>
                     <div className="flex gap-2 mt-1">
                       {[1, 2, 3].map((n) => (
                         <Chip key={n} active={d.moreChildrenCount === n} onClick={() => u({ moreChildrenCount: n })} label={`${n}人`} />
@@ -186,168 +180,168 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
             )}
           </>}
 
-          {/* ===== Step 2: 仕事 ===== */}
+          {/* ===== Step 2: キャリア ===== */}
           {step === 2 && <>
-            <Q label="今の働き方は？">
+            <Q label="現在の働き方">
               <div className="grid grid-cols-3 gap-2">
                 {([
                   { key: 'employee' as WorkStyle, emoji: '🏢', name: '会社員' },
                   { key: 'freelance' as WorkStyle, emoji: '💻', name: 'フリーランス' },
-                  { key: 'corporate_owner' as WorkStyle, emoji: '👔', name: '経営者' },
+                  { key: 'corporate_owner' as WorkStyle, emoji: '👔', name: '経営者・役員' },
                 ]).map((w) => (
                   <Chip key={w.key} active={d.workStyle === w.key} onClick={() => u({ workStyle: w.key })} label={`${w.emoji} ${w.name}`} large />
                 ))}
               </div>
             </Q>
-            <Q label="会社名・屋号">
-              <Input value={d.company} onChange={(v) => u({ company: v })} placeholder="○○株式会社" />
+            <Q label="勤務先・屋号">
+              <Input value={d.company} onChange={(v) => u({ company: v })} placeholder="例：○○株式会社" />
             </Q>
-            <Q label="仕事の内容">
-              <Input value={d.position} onChange={(v) => u({ position: v })} placeholder="例：営業、エンジニア…" />
+            <Q label="職種・役職">
+              <Input value={d.position} onChange={(v) => u({ position: v })} placeholder="例：営業、エンジニア" />
             </Q>
-            <Q label="1年にもらえるお金は？（税引き前）" hint={`→ 月あたり約${Math.round(d.income / 12)}万円`}>
+            <Q label="年収（税引き前）" hint={`月収換算で約${Math.round(d.income / 12)}万円`}>
               <Num value={d.income} onChange={(v) => u({ income: v })} suffix="万円/年" />
             </Q>
 
-            <Q label="今後、転職を考えていますか？">
+            <Q label="転職の予定はありますか？">
               <YesNo value={d.planJobChange} onChange={(v) => u({ planJobChange: v })} />
               {d.planJobChange && (
                 <div className="grid grid-cols-2 gap-3 mt-3">
-                  <div><label className="text-xs text-gray-500">何歳ごろ？</label><Num value={d.jobChangeAge} onChange={(v) => u({ jobChangeAge: v })} suffix="歳" /></div>
-                  <div><label className="text-xs text-gray-500">転職後の年収は？</label><Num value={d.jobChangeIncome} onChange={(v) => u({ jobChangeIncome: v })} suffix="万円" /></div>
+                  <div><label className="text-xs text-gray-500">想定時期</label><Num value={d.jobChangeAge} onChange={(v) => u({ jobChangeAge: v })} suffix="歳頃" /></div>
+                  <div><label className="text-xs text-gray-500">転職後の想定年収</label><Num value={d.jobChangeIncome} onChange={(v) => u({ jobChangeIncome: v })} suffix="万円" /></div>
                 </div>
               )}
             </Q>
 
             {d.workStyle === 'employee' && (
-              <Q label="将来、フリーランスや独立を考えていますか？">
+              <Q label="独立・フリーランス転向の予定はありますか？">
                 <YesNo value={d.planFreelance} onChange={(v) => u({ planFreelance: v })} />
                 {d.planFreelance && (
                   <div className="grid grid-cols-2 gap-3 mt-3">
-                    <div><label className="text-xs text-gray-500">何歳ごろ？</label><Num value={d.freelanceAge} onChange={(v) => u({ freelanceAge: v })} suffix="歳" /></div>
-                    <div><label className="text-xs text-gray-500">年間の売上見込みは？</label><Num value={d.freelanceIncome} onChange={(v) => u({ freelanceIncome: v })} suffix="万円" /></div>
+                    <div><label className="text-xs text-gray-500">想定時期</label><Num value={d.freelanceAge} onChange={(v) => u({ freelanceAge: v })} suffix="歳頃" /></div>
+                    <div><label className="text-xs text-gray-500">想定売上</label><Num value={d.freelanceIncome} onChange={(v) => u({ freelanceIncome: v })} suffix="万円/年" /></div>
                   </div>
                 )}
               </Q>
             )}
 
-            <Q label="退職金はもらえそうですか？">
-              <YesNo value={d.expectRetirementBonus} onChange={(v) => u({ expectRetirementBonus: v })} yesLabel="もらえそう" noLabel="たぶんない" />
+            <Q label="退職金の見込みはありますか？">
+              <YesNo value={d.expectRetirementBonus} onChange={(v) => u({ expectRetirementBonus: v })} yesLabel="見込みあり" noLabel="見込みなし" />
               {d.expectRetirementBonus && (
-                <div className="mt-3"><label className="text-xs text-gray-500">だいたいいくら？</label><Num value={d.retirementBonus} onChange={(v) => u({ retirementBonus: v })} suffix="万円くらい" /></div>
+                <div className="mt-3"><label className="text-xs text-gray-500">概算の金額</label><Num value={d.retirementBonus} onChange={(v) => u({ retirementBonus: v })} suffix="万円程度" /></div>
               )}
             </Q>
           </>}
 
           {/* ===== Step 3: 住まい ===== */}
           {step === 3 && <>
-            <Q label="今は賃貸に住んでいますか？">
+            <Q label="現在の住居形態は？">
               <YesNo value={d.currentlyRenting} onChange={(v) => u({ currentlyRenting: v })} yesLabel="賃貸" noLabel="持ち家・その他" />
               {d.currentlyRenting && (
-                <div className="mt-3"><label className="text-xs text-gray-500">毎月の家賃は？</label><Num value={d.monthlyRent} onChange={(v) => u({ monthlyRent: v })} suffix="万円/月" /></div>
+                <div className="mt-3"><label className="text-xs text-gray-500">月額家賃</label><Num value={d.monthlyRent} onChange={(v) => u({ monthlyRent: v })} suffix="万円/月" /></div>
               )}
             </Q>
 
-            <Q label="家を買う予定はありますか？">
-              <YesNo value={d.planBuyHouse} onChange={(v) => u({ planBuyHouse: v })} yesLabel="買いたい" noLabel="今のところない" />
+            <Q label="住宅の購入予定はありますか？">
+              <YesNo value={d.planBuyHouse} onChange={(v) => u({ planBuyHouse: v })} yesLabel="購入予定あり" noLabel="今のところなし" />
               {d.planBuyHouse && (
                 <div className="space-y-3 mt-3">
                   <div className="grid grid-cols-2 gap-3">
-                    <div><label className="text-xs text-gray-500">何歳ごろ？</label><Num value={d.houseBuyAge} onChange={(v) => u({ houseBuyAge: v })} suffix="歳" /></div>
-                    <div><label className="text-xs text-gray-500">物件の予算は？</label><Num value={d.housePrice} onChange={(v) => u({ housePrice: v })} suffix="万円" /></div>
+                    <div><label className="text-xs text-gray-500">購入時期</label><Num value={d.houseBuyAge} onChange={(v) => u({ houseBuyAge: v })} suffix="歳頃" /></div>
+                    <div><label className="text-xs text-gray-500">物件価格の目安</label><Num value={d.housePrice} onChange={(v) => u({ housePrice: v })} suffix="万円" /></div>
                   </div>
-                  <div><label className="text-xs text-gray-500">最初に払えるお金（頭金）は？</label><Num value={d.houseDownPayment} onChange={(v) => u({ houseDownPayment: v })} suffix="万円" /></div>
+                  <div><label className="text-xs text-gray-500">頭金（初期資金）</label><Num value={d.houseDownPayment} onChange={(v) => u({ houseDownPayment: v })} suffix="万円" /></div>
                 </div>
               )}
             </Q>
           </>}
 
-          {/* ===== Step 4: お金のこと ===== */}
+          {/* ===== Step 4: 家計・資産形成 ===== */}
           {step === 4 && <>
-            <Q label="毎月の生活費はだいたいいくら？" hint="食費・光熱費・通信費・日用品など全部あわせて">
+            <Q label="月々の生活費はどの程度ですか？" hint="食費・光熱費・通信費・日用品など合計">
               <Num value={d.monthlyLiving} onChange={(v) => u({ monthlyLiving: v })} suffix="万円/月" />
             </Q>
 
-            <Q label="毎月いくらくらい貯金していますか？">
+            <Q label="月々の貯蓄額は？">
               <Num value={d.monthlySaving} onChange={(v) => u({ monthlySaving: v })} suffix="万円/月" />
             </Q>
 
-            <Q label="NISAをやっていますか？（または始めたい）" hint="少額投資で資産を増やす制度">
-              <YesNo value={d.hasNisa} onChange={(v) => u({ hasNisa: v })} yesLabel="やってる/始めたい" noLabel="やらない" />
-              {d.hasNisa && <div className="mt-3"><label className="text-xs text-gray-500">月いくら？</label><Num value={d.nisaMonthly} onChange={(v) => u({ nisaMonthly: v })} suffix="万円/月" /></div>}
+            <Q label="NISA（少額投資非課税制度）を利用していますか？" hint="運用益が非課税になる投資制度">
+              <YesNo value={d.hasNisa} onChange={(v) => u({ hasNisa: v })} yesLabel="利用中/開始予定" noLabel="利用しない" />
+              {d.hasNisa && <div className="mt-3"><label className="text-xs text-gray-500">毎月の積立額</label><Num value={d.nisaMonthly} onChange={(v) => u({ nisaMonthly: v })} suffix="万円/月" /></div>}
             </Q>
 
-            <Q label="iDeCo（イデコ）をやっていますか？" hint="老後のための積立制度。節税効果あり">
-              <YesNo value={d.hasIdeco} onChange={(v) => u({ hasIdeco: v })} yesLabel="やってる/始めたい" noLabel="やらない" />
-              {d.hasIdeco && <div className="mt-3"><label className="text-xs text-gray-500">月いくら？</label><Num value={d.idecoMonthly} onChange={(v) => u({ idecoMonthly: v })} suffix="万円/月" /></div>}
+            <Q label="iDeCo（個人型確定拠出年金）を利用していますか？" hint="掛金が全額所得控除になる年金制度">
+              <YesNo value={d.hasIdeco} onChange={(v) => u({ hasIdeco: v })} yesLabel="利用中/開始予定" noLabel="利用しない" />
+              {d.hasIdeco && <div className="mt-3"><label className="text-xs text-gray-500">毎月の掛金</label><Num value={d.idecoMonthly} onChange={(v) => u({ idecoMonthly: v })} suffix="万円/月" /></div>}
             </Q>
 
-            <Q label="生命保険に入っていますか？">
+            <Q label="生命保険に加入していますか？">
               <YesNo value={d.hasLifeInsurance} onChange={(v) => u({ hasLifeInsurance: v })} />
-              {d.hasLifeInsurance && <div className="mt-3"><Num value={d.lifeInsuranceCost} onChange={(v) => u({ lifeInsuranceCost: v })} suffix="万円/月" /></div>}
+              {d.hasLifeInsurance && <div className="mt-3"><label className="text-xs text-gray-500">月額保険料</label><Num value={d.lifeInsuranceCost} onChange={(v) => u({ lifeInsuranceCost: v })} suffix="万円/月" /></div>}
             </Q>
 
-            <Q label="車を持っていますか（または持つ予定）？">
+            <Q label="自動車を所有していますか（または予定）？">
               <YesNo value={d.hasCar} onChange={(v) => u({ hasCar: v })} />
-              {d.hasCar && <div className="mt-3"><label className="text-xs text-gray-500">維持費（車検・保険・ガソリンなど）</label><Num value={d.carCost} onChange={(v) => u({ carCost: v })} suffix="万円/月" /></div>}
+              {d.hasCar && <div className="mt-3"><label className="text-xs text-gray-500">月額の維持費（車検・保険・ガソリン等）</label><Num value={d.carCost} onChange={(v) => u({ carCost: v })} suffix="万円/月" /></div>}
             </Q>
 
-            <Q label="借金やローン（住宅以外）はありますか？" hint="奨学金、カードローンなど">
-              <YesNo value={d.hasDebt} onChange={(v) => u({ hasDebt: v })} yesLabel="ある" noLabel="ない" />
+            <Q label="住宅ローン以外の借入はありますか？" hint="奨学金、カードローン等">
+              <YesNo value={d.hasDebt} onChange={(v) => u({ hasDebt: v })} yesLabel="あり" noLabel="なし" />
               {d.hasDebt && (
                 <div className="grid grid-cols-2 gap-3 mt-3">
-                  <div><label className="text-xs text-gray-500">残りの総額</label><Num value={d.debtAmount} onChange={(v) => u({ debtAmount: v })} suffix="万円" /></div>
-                  <div><label className="text-xs text-gray-500">毎月の返済額</label><Num value={d.debtMonthly} onChange={(v) => u({ debtMonthly: v })} suffix="万円/月" /></div>
+                  <div><label className="text-xs text-gray-500">残高合計</label><Num value={d.debtAmount} onChange={(v) => u({ debtAmount: v })} suffix="万円" /></div>
+                  <div><label className="text-xs text-gray-500">月々の返済額</label><Num value={d.debtMonthly} onChange={(v) => u({ debtMonthly: v })} suffix="万円/月" /></div>
                 </div>
               )}
             </Q>
           </>}
 
-          {/* ===== Step 5: 将来のイベント ===== */}
+          {/* ===== Step 5: 将来のライフイベント ===== */}
           {step === 5 && <>
             {!d.hasSpouse && (
-              <Q label="結婚式をする予定はありますか？">
+              <Q label="結婚式の予定はありますか？">
                 <YesNo value={d.planWedding} onChange={(v) => u({ planWedding: v })} />
                 {d.planWedding && (
                   <div className="grid grid-cols-2 gap-3 mt-3">
-                    <div><label className="text-xs text-gray-500">何歳ごろ？</label><Num value={d.weddingAge} onChange={(v) => u({ weddingAge: v })} suffix="歳" /></div>
-                    <div><label className="text-xs text-gray-500">予算は？</label><Num value={d.weddingCost} onChange={(v) => u({ weddingCost: v })} suffix="万円" /></div>
+                    <div><label className="text-xs text-gray-500">想定時期</label><Num value={d.weddingAge} onChange={(v) => u({ weddingAge: v })} suffix="歳頃" /></div>
+                    <div><label className="text-xs text-gray-500">予算</label><Num value={d.weddingCost} onChange={(v) => u({ weddingCost: v })} suffix="万円" /></div>
                   </div>
                 )}
               </Q>
             )}
 
             {(d.children.length > 0 || d.planMoreChildren) && (
-              <Q label="子どもの進学先はどう考えていますか？">
+              <Q label="お子さまの教育方針は？">
                 <div className="grid grid-cols-3 gap-2">
                   {([
-                    { key: 'public' as const, label: '公立中心', cost: '安め' },
-                    { key: 'private_arts' as const, label: '私立文系', cost: 'ふつう' },
-                    { key: 'private_science' as const, label: '私立理系', cost: '高め' },
+                    { key: 'public' as const, label: '公立中心', hint: '費用を抑えたい' },
+                    { key: 'private_arts' as const, label: '私立文系', hint: '標準的な費用' },
+                    { key: 'private_science' as const, label: '私立理系', hint: '費用がかかる' },
                   ]).map((opt) => (
-                    <Chip key={opt.key} active={d.planChildEducation === opt.key} onClick={() => u({ planChildEducation: opt.key })} label={`${opt.label}\n(${opt.cost})`} large />
+                    <Chip key={opt.key} active={d.planChildEducation === opt.key} onClick={() => u({ planChildEducation: opt.key })} label={`${opt.label}\n(${opt.hint})`} large />
                   ))}
                 </div>
               </Q>
             )}
 
             {(d.children.length > 0 || d.planMoreChildren) && (
-              <Q label="子どもの留学は考えていますか？">
+              <Q label="お子さまの留学は検討していますか？">
                 <YesNo value={d.planStudyAbroad} onChange={(v) => u({ planStudyAbroad: v })} />
               </Q>
             )}
 
-            <Q label="親の介護が必要になりそうですか？">
-              <YesNo value={d.planParentCare} onChange={(v) => u({ planParentCare: v })} yesLabel="なりそう" noLabel="たぶん大丈夫" />
-              {d.planParentCare && <div className="mt-3"><label className="text-xs text-gray-500">自分が何歳ごろから？</label><Num value={d.parentCareAge} onChange={(v) => u({ parentCareAge: v })} suffix="歳ごろ" /></div>}
+            <Q label="親の介護が必要になる見込みはありますか？">
+              <YesNo value={d.planParentCare} onChange={(v) => u({ planParentCare: v })} yesLabel="見込みあり" noLabel="その予定はない" />
+              {d.planParentCare && <div className="mt-3"><label className="text-xs text-gray-500">ご自身が何歳頃から？</label><Num value={d.parentCareAge} onChange={(v) => u({ parentCareAge: v })} suffix="歳頃" /></div>}
             </Q>
 
-            {/* 完成プレビュー */}
+            {/* 完了メッセージ */}
             <div className="bg-sky-50 rounded-2xl p-5 space-y-2">
-              <div className="text-sm font-bold text-sky-700">📊 回答おつかれさまでした！</div>
+              <div className="text-sm font-bold text-sky-700">ご入力ありがとうございました</div>
               <div className="text-xs text-gray-600 space-y-1">
-                <div>あなたの回答をもとに、<b>自動でライフプラン</b>を作ります。</div>
-                <div>作成後も自由に編集・追加できます。</div>
+                <div>入力いただいた情報をもとに、ライフプランを自動生成します。</div>
+                <div>生成後も自由に編集・追加が可能です。</div>
               </div>
             </div>
           </>}
@@ -357,7 +351,7 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
         <div className="flex gap-3 mt-8 pb-8">
           {step > 0 && (
             <button onClick={() => setStep(step - 1)} className="px-6 py-3.5 border-2 border-gray-200 rounded-xl text-sm hover:bg-gray-50 font-medium">
-              ← 戻る
+              戻る
             </button>
           )}
           <button
@@ -369,7 +363,7 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            {step === STEPS.length - 1 ? 'プランを自動作成する 🎉' : '次へ →'}
+            {step === STEPS.length - 1 ? 'ライフプランを生成する' : '次へ'}
           </button>
         </div>
       </div>

@@ -67,13 +67,13 @@ export default function InputPanel(props: InputPanelProps) {
   const [open, setOpen] = useState<TopicKey | null>(null);
 
   const topics: { key: TopicKey; emoji: string; title: string; hint: string; count: number }[] = [
-    { key: 'family', emoji: '👨‍👩‍👧', title: '家族', hint: 'いっしょに暮らす人を登録', count: props.persons.length },
-    { key: 'work', emoji: '💼', title: 'しごと', hint: '今の仕事・将来のキャリア', count: props.scenarios.reduce((n, s) => n + s.careerBlocks.length, 0) },
-    { key: 'monthly', emoji: '💸', title: '毎月かかるお金', hint: '生活費・保険・サブスクなど', count: props.recurringExpenses.length },
+    { key: 'family', emoji: '👨‍👩‍👧', title: '家族構成', hint: '家族メンバーの登録・編集', count: props.persons.length },
+    { key: 'work', emoji: '💼', title: 'キャリア', hint: '職歴・将来のキャリア��ス', count: props.scenarios.reduce((n, s) => n + s.careerBlocks.length, 0) },
+    { key: 'monthly', emoji: '💸', title: '固定費・生活費', hint: '毎月の支出（保険・通信費等）', count: props.recurringExpenses.length },
     { key: 'house', emoji: '🏠', title: '住まい', hint: '家賃・住宅ローン', count: props.housingLoans.length },
-    { key: 'events', emoji: '🎉', title: '人生のイベント', hint: '結婚・出産・車の購入など', count: props.lifeEvents.length },
-    { key: 'saving', emoji: '🐷', title: '貯金・投資', hint: 'NISA・iDeCo・ちょきんなど', count: props.investmentAccounts.length },
-    { key: 'check', emoji: '✅', title: 'チェックリスト', hint: '見落としがないか確認', count: 0 },
+    { key: 'events', emoji: '📅', title: 'ライフイベント', hint: '結婚・出産・車の購入など', count: props.lifeEvents.length },
+    { key: 'saving', emoji: '📈', title: '資産形成', hint: 'NISA・iDeCo・貯蓄', count: props.investmentAccounts.length },
+    { key: 'check', emoji: '✅', title: 'チェックリスト', hint: '対応状況の確認', count: 0 },
     { key: 'other', emoji: '⚙️', title: 'その他の設定', hint: '資格・メモ・前提条件', count: props.skills.length + props.memos.length },
   ];
 
@@ -140,7 +140,7 @@ export default function InputPanel(props: InputPanelProps) {
           サンプルデータで試す
         </button>
         <button onClick={props.onResetAll} className="w-full py-2 text-xs text-gray-400 hover:text-red-500">
-          ぜんぶ消す
+          すべてリセット
         </button>
       </div>
     </div>
@@ -167,7 +167,7 @@ function FamilyPage({ persons, onAddPerson, onRemovePerson }: InputPanelProps) {
                 <span className="text-sm font-bold">{p.name}</span>
                 <span className="text-xs text-gray-400 ml-2">{y - p.birthYear}歳 ({relLabels[p.relation]})</span>
               </div>
-              <button onClick={() => onRemovePerson(p.id)} className={delBtn}>消す</button>
+              <button onClick={() => onRemovePerson(p.id)} className={delBtn}>削除</button>
             </div>
           ))}
         </div>
@@ -183,7 +183,7 @@ function FamilyPage({ persons, onAddPerson, onRemovePerson }: InputPanelProps) {
             <span className="text-sm text-gray-500">年 （{y - birthYear}歳）</span>
           </div>
         </div>
-        <div><label className={label}>だれ？</label>
+        <div><label className={label}>続柄</label>
           <div className="grid grid-cols-2 gap-2">
             {(['self', 'spouse', 'child', 'other'] as const).map((r) => (
               <button key={r} onClick={() => setRelation(r)} className={`py-3 rounded-xl border-2 text-sm transition-all ${relation === r ? 'border-sky-500 bg-white font-bold text-sky-700' : 'border-gray-200 bg-white text-gray-500'}`}>{relLabels[r]}</button>
@@ -219,9 +219,9 @@ function WorkPage({ persons, scenarios, activeScenarioIds, onAddScenario, onRemo
   return (
     <div className="space-y-5">
       <div className="bg-amber-50 rounded-2xl p-4 text-sm text-amber-700">
-        💡 <b>「シナリオ」って？</b><br />
-        「もし転職したら？」「もし独立したら？」のように、<b>いろんな将来のパターン</b>を比べられる機能です。
-        まずは1つ作ってみましょう。
+        💡 <b>シナリオとは？</b><br />
+        「転職した場合」「独立した場合」など、<b>複数の将来パターンを比較</b>できる機能です。
+        まずは基本シナリオを1つ作成してください。
       </div>
 
       {/* シナリオ一覧 */}
@@ -235,7 +235,7 @@ function WorkPage({ persons, scenarios, activeScenarioIds, onAddScenario, onRemo
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: sc.color }} />
                 <span className="text-sm font-medium">{sc.name}</span>
               </div>
-              <button onClick={() => onRemoveScenario(sc.id)} className={delBtn}>消す</button>
+              <button onClick={() => onRemoveScenario(sc.id)} className={delBtn}>削除</button>
             </div>
           ))}
         </div>
@@ -251,9 +251,9 @@ function WorkPage({ persons, scenarios, activeScenarioIds, onAddScenario, onRemo
       {scenarios.length > 0 && (
         <div className="bg-sky-50 rounded-2xl p-5 space-y-4">
           <div className="text-sm font-bold text-sky-700">仕事の詳細を追加</div>
-          <div className="text-xs text-gray-500">いつ・どこで・いくらで働くかを登録します</div>
+          <div className="text-xs text-gray-500">期間・勤務先・年収を設定します</div>
 
-          <div><label className={label}>どのシナリオに追加する？</label><select className={input} value={selectedScenario} onChange={(e) => setSelectedScenario(e.target.value)}><option value="">えらんでください</option>{scenarios.map((sc) => <option key={sc.id} value={sc.id}>{sc.name}</option>)}</select></div>
+          <div><label className={label}>どのシナリオに追加する？</label><select className={input} value={selectedScenario} onChange={(e) => setSelectedScenario(e.target.value)}><option value="">選択してください</option>{scenarios.map((sc) => <option key={sc.id} value={sc.id}>{sc.name}</option>)}</select></div>
           {persons.length > 1 && <div><label className={label}>だれの仕事？</label><select className={input} value={personId} onChange={(e) => setPersonId(e.target.value)}>{persons.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>}
 
           <div><label className={label}>働き方</label>
@@ -272,16 +272,16 @@ function WorkPage({ persons, scenarios, activeScenarioIds, onAddScenario, onRemo
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div><label className={label}>何歳から</label><input className={input} type="number" value={startAge} onChange={(e) => setStartAge(Number(e.target.value))} /></div>
-            <div><label className={label}>何歳まで</label><input className={input} type="number" value={endAge} onChange={(e) => setEndAge(Number(e.target.value))} /></div>
+            <div><label className={label}>開始年齢</label><input className={input} type="number" value={startAge} onChange={(e) => setStartAge(Number(e.target.value))} /></div>
+            <div><label className={label}>終了年齢</label><input className={input} type="number" value={endAge} onChange={(e) => setEndAge(Number(e.target.value))} /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className={label}>会社名やお店の名前</label><input className={input} value={company} onChange={(e) => setCompany(e.target.value)} /></div>
             <div><label className={label}>仕事の内容</label><input className={input} value={position} onChange={(e) => setPosition(e.target.value)} placeholder="例：営業" /></div>
           </div>
-          <div><label className={label}>1年にもらえるお金（万円）</label>
+          <div><label className={label}>年収（万円）</label>
             <input className={input} type="number" value={income} onChange={(e) => setIncome(Number(e.target.value))} />
-            <div className="text-xs text-gray-400 mt-1">→ 税金を引くと、手元に残るのは約<b className="text-sky-600">{formatMoney(Math.round(takeHome))}</b>/年 くらい</div>
+            <div className="text-xs text-gray-400 mt-1">手取り概算: 約<b className="text-sky-600">{formatMoney(Math.round(takeHome))}</b>/年</div>
           </div>
 
           <button onClick={() => {
@@ -304,7 +304,7 @@ function WorkPage({ persons, scenarios, activeScenarioIds, onAddScenario, onRemo
           {sc.careerBlocks.map((cb) => (
             <div key={cb.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2 mb-1">
               <span className="text-xs">{cb.startAge}〜{cb.endAge}歳 {cb.company} {cb.annualIncome}万円/年</span>
-              <button onClick={() => onRemoveCareerBlock(sc.id, cb.id)} className={delBtn}>消す</button>
+              <button onClick={() => onRemoveCareerBlock(sc.id, cb.id)} className={delBtn}>削除</button>
             </div>
           ))}
         </div>
@@ -334,7 +334,7 @@ function MonthlyPage({ persons, recurringExpenses, onAddRecurringExpense, onRemo
 
   return (
     <div className="space-y-5">
-      <div className="text-xs text-gray-500">毎月・毎年、決まってかかるお金です。ボタンをタップすると追加されます。</div>
+      <div className="text-xs text-gray-500">毎月・毎年発生する固定的な支出を登録します。よくある項目はワンクリックで追加できます。</div>
 
       {/* クイック追加 */}
       <div className="grid grid-cols-2 gap-2">
@@ -354,11 +354,11 @@ function MonthlyPage({ persons, recurringExpenses, onAddRecurringExpense, onRemo
       {/* カスタム */}
       <div className="bg-sky-50 rounded-2xl p-5 space-y-3">
         <div className="text-sm font-bold text-sky-700">自分で追加する</div>
-        <div><label className={label}>何のお金？</label><input className={input} value={name} onChange={(e) => setName(e.target.value)} placeholder="例：家賃、保育園など" /></div>
+        <div><label className={label}>支出の内容</label><input className={input} value={name} onChange={(e) => setName(e.target.value)} placeholder="例：家賃、保育園など" /></div>
         <div className="grid grid-cols-3 gap-2">
-          <div><label className={label}>何歳から</label><input className={input} type="number" value={startAge} onChange={(e) => setStartAge(Number(e.target.value))} /></div>
-          <div><label className={label}>何歳まで</label><input className={input} type="number" value={endAge} onChange={(e) => setEndAge(Number(e.target.value))} /></div>
-          <div><label className={label}>1年でいくら（万円）</label><input className={input} type="number" value={annualCost} onChange={(e) => setAnnualCost(Number(e.target.value))} /></div>
+          <div><label className={label}>開始年齢</label><input className={input} type="number" value={startAge} onChange={(e) => setStartAge(Number(e.target.value))} /></div>
+          <div><label className={label}>終了年齢</label><input className={input} type="number" value={endAge} onChange={(e) => setEndAge(Number(e.target.value))} /></div>
+          <div><label className={label}>年額（万円）</label><input className={input} type="number" value={annualCost} onChange={(e) => setAnnualCost(Number(e.target.value))} /></div>
         </div>
         <button onClick={() => { if (name.trim() && selfPerson) { onAddRecurringExpense({ personId: selfPerson.id, name: name.trim(), startAge, endAge, annualCost, category: 'living', majorCategory: 'expenses_living' }); setName(''); setAnnualCost(0); } }} className={addBtn}>追加する</button>
       </div>
@@ -366,12 +366,12 @@ function MonthlyPage({ persons, recurringExpenses, onAddRecurringExpense, onRemo
       {/* 一覧 */}
       {recurringExpenses.length > 0 && (
         <div>
-          <div className="text-xs font-bold text-gray-500 mb-2">登録ずみ（{recurringExpenses.length}件）</div>
+          <div className="text-xs font-bold text-gray-500 mb-2">登録済み（{recurringExpenses.length}件）</div>
           <div className="space-y-1 max-h-48 overflow-y-auto">
             {recurringExpenses.map((e) => (
               <div key={e.id} className={card}>
                 <span className="text-xs">{e.name} — 年{e.annualCost}万円 ({e.startAge}〜{e.endAge}歳)</span>
-                <button onClick={() => onRemoveRecurringExpense(e.id)} className={delBtn}>消す</button>
+                <button onClick={() => onRemoveRecurringExpense(e.id)} className={delBtn}>削除</button>
               </div>
             ))}
           </div>
@@ -399,31 +399,31 @@ function HousePage({ persons, scenarios, activeScenarioIds, housingLoans, onAddH
 
   return (
     <div className="space-y-5">
-      <div className="text-xs text-gray-500">家を買ったら毎月いくら払う？審査は通る？をシミュレーションできます。</div>
+      <div className="text-xs text-gray-500">住宅購入時のローン返済額や審査の見通しをシミュレーションできます。</div>
 
       <div className="bg-sky-50 rounded-2xl p-5 space-y-4">
         <div><label className={label}>物件の名前</label><input className={input} value={name} onChange={(e) => setName(e.target.value)} /></div>
         <div className="grid grid-cols-2 gap-3">
-          <div><label className={label}>何歳で買う？</label><input className={input} type="number" value={purchaseAge} onChange={(e) => setPurchaseAge(Number(e.target.value))} /></div>
-          <div><label className={label}>物件の値段（万円）</label><input className={input} type="number" value={propertyPrice} onChange={(e) => setPropertyPrice(Number(e.target.value))} /></div>
+          <div><label className={label}>購入予定年齢</label><input className={input} type="number" value={purchaseAge} onChange={(e) => setPurchaseAge(Number(e.target.value))} /></div>
+          <div><label className={label}>物件価格（万円）</label><input className={input} type="number" value={propertyPrice} onChange={(e) => setPropertyPrice(Number(e.target.value))} /></div>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div><label className={label}>最初に払うお金（万円）</label><input className={input} type="number" value={downPayment} onChange={(e) => setDownPayment(Number(e.target.value))} /></div>
-          <div><label className={label}>借りる金額</label><div className="px-4 py-3 bg-white rounded-xl text-sm text-gray-700 border-2 border-gray-200">{formatMoney(loanAmount)}</div></div>
+          <div><label className={label}>頭金（万円）</label><input className={input} type="number" value={downPayment} onChange={(e) => setDownPayment(Number(e.target.value))} /></div>
+          <div><label className={label}>借入額</label><div className="px-4 py-3 bg-white rounded-xl text-sm text-gray-700 border-2 border-gray-200">{formatMoney(loanAmount)}</div></div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div><label className={label}>金利（年 %）</label><input className={input} type="number" step="0.1" value={interestRate} onChange={(e) => setInterestRate(Number(e.target.value))} /></div>
-          <div><label className={label}>何年で返す？</label><input className={input} type="number" value={loanTermYears} onChange={(e) => setLoanTermYears(Number(e.target.value))} /></div>
+          <div><label className={label}>返済期間（年）</label><input className={input} type="number" value={loanTermYears} onChange={(e) => setLoanTermYears(Number(e.target.value))} /></div>
         </div>
 
         {/* 結果 */}
         <div className={`rounded-2xl p-4 ${assessment.isApproved ? 'bg-green-50 border-2 border-green-200' : 'bg-red-50 border-2 border-red-200'}`}>
           <div className={`text-sm font-bold mb-2 ${assessment.isApproved ? 'text-green-700' : 'text-red-700'}`}>
-            {assessment.isApproved ? '✅ ローンが通りそうです！' : '⚠️ ローンが難しいかもしれません'}
+            {assessment.isApproved ? '✅ 審査通過の見込みあり' : '⚠️ 審査が厳しい可能性があります'}
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="bg-white rounded-lg p-2"><div className="text-gray-400">毎月の返済</div><div className="font-bold text-lg">{monthly.toFixed(1)}<span className="text-sm">万円</span></div></div>
-            <div className="bg-white rounded-lg p-2"><div className="text-gray-400">返し終わる歳</div><div className="font-bold text-lg">{assessment.completionAge}<span className="text-sm">歳</span></div></div>
+            <div className="bg-white rounded-lg p-2"><div className="text-gray-400">完済年齢</div><div className="font-bold text-lg">{assessment.completionAge}<span className="text-sm">歳</span></div></div>
           </div>
           {assessment.warnings.map((w, i) => <div key={i} className="text-xs text-red-600 mt-2">⚠ {w}</div>)}
         </div>
@@ -434,7 +434,7 @@ function HousePage({ persons, scenarios, activeScenarioIds, housingLoans, onAddH
       {housingLoans.map((loan) => (
         <div key={loan.id} className={card}>
           <div><div className="text-xs font-bold">{loan.name}</div><div className="text-xs text-gray-400">{loan.purchaseAge}歳〜 月{calcMonthlyPayment(loan.loanAmount, loan.interestRate, loan.loanTermYears).toFixed(1)}万円</div></div>
-          <button onClick={() => onRemoveHousingLoan(loan.id)} className={delBtn}>消す</button>
+          <button onClick={() => onRemoveHousingLoan(loan.id)} className={delBtn}>削除</button>
         </div>
       ))}
     </div>
@@ -463,7 +463,7 @@ function EventsPage({ persons, lifeEvents, onAddLifeEvent, onRemoveLifeEvent }: 
 
   return (
     <div className="space-y-5">
-      <div className="text-xs text-gray-500">人生で起こるできごとと、その費用を追加します。</div>
+      <div className="text-xs text-gray-500">人生の節目となるイベントとその費用を登録します。</div>
 
       <div className="grid grid-cols-3 gap-2">
         {quickEvents.map((ev, i) => (
@@ -479,15 +479,15 @@ function EventsPage({ persons, lifeEvents, onAddLifeEvent, onRemoveLifeEvent }: 
 
       <div className="bg-sky-50 rounded-2xl p-5 space-y-3">
         <div className="text-sm font-bold text-sky-700">自分で追加する</div>
-        <div><label className={label}>何がある？</label><input className={input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例：結婚、留学、引っ越し…" /></div>
+        <div><label className={label}>イベント名</label><input className={input} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例：結婚、留学、引っ越し…" /></div>
         <div className="grid grid-cols-2 gap-3">
-          <div><label className={label}>何歳のとき？</label><input className={input} type="number" value={age} onChange={(e) => setAge(Number(e.target.value))} /></div>
-          <div><label className={label}>いくら？（万円）</label><input className={input} type="number" value={cost} onChange={(e) => setCost(Number(e.target.value))} /></div>
+          <div><label className={label}>発生年齢</label><input className={input} type="number" value={age} onChange={(e) => setAge(Number(e.target.value))} /></div>
+          <div><label className={label}>金額（万円）</label><input className={input} type="number" value={cost} onChange={(e) => setCost(Number(e.target.value))} /></div>
         </div>
-        <div><label className={label}>お金が出ていく？入ってくる？</label>
+        <div><label className={label}>収支区分</label>
           <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => setIsExpense(true)} className={`py-3 rounded-xl border-2 text-sm font-bold transition-all ${isExpense ? 'border-red-400 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400'}`}>💸 出ていく</button>
-            <button onClick={() => setIsExpense(false)} className={`py-3 rounded-xl border-2 text-sm font-bold transition-all ${!isExpense ? 'border-green-400 bg-green-50 text-green-600' : 'border-gray-200 text-gray-400'}`}>💰 入ってくる</button>
+            <button onClick={() => setIsExpense(true)} className={`py-3 rounded-xl border-2 text-sm font-bold transition-all ${isExpense ? 'border-red-400 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400'}`}>支出</button>
+            <button onClick={() => setIsExpense(false)} className={`py-3 rounded-xl border-2 text-sm font-bold transition-all ${!isExpense ? 'border-green-400 bg-green-50 text-green-600' : 'border-gray-200 text-gray-400'}`}>収入</button>
           </div>
         </div>
         <button onClick={() => { if (title.trim() && selfPerson) { onAddLifeEvent({ personId: selfPerson.id, age, title: title.trim(), cost, category: 'other', majorCategory: 'life_events', isExpense }); setTitle(''); setCost(0); } }} className={addBtn}>追加する</button>
@@ -495,12 +495,12 @@ function EventsPage({ persons, lifeEvents, onAddLifeEvent, onRemoveLifeEvent }: 
 
       {lifeEvents.length > 0 && (
         <div>
-          <div className="text-xs font-bold text-gray-500 mb-2">登録ずみ（{lifeEvents.length}件）</div>
+          <div className="text-xs font-bold text-gray-500 mb-2">登録済み（{lifeEvents.length}件）</div>
           <div className="space-y-1 max-h-48 overflow-y-auto">
             {lifeEvents.map((e) => (
               <div key={e.id} className={card}>
                 <span className="text-xs">{e.age}歳: {e.title}{e.cost > 0 && <span className="text-gray-400 ml-1">{e.isExpense ? '-' : '+'}{e.cost}万</span>}</span>
-                <button onClick={() => onRemoveLifeEvent(e.id)} className={delBtn}>消す</button>
+                <button onClick={() => onRemoveLifeEvent(e.id)} className={delBtn}>削除</button>
               </div>
             ))}
           </div>
@@ -517,18 +517,12 @@ function SavingPage({ persons, investmentAccounts, onAddInvestmentAccount, onRem
   const quickItems = [
     { emoji: '📊', name: '新NISA（つみたて）', type: 'nisa' as const, monthly: 5, ret: 4, hint: '月5万円・年4%で増える想定' },
     { emoji: '🏦', name: 'iDeCo（イデコ）', type: 'ideco' as const, monthly: 2.3, ret: 3, hint: '月2.3万円・税金がお得に' },
-    { emoji: '💰', name: 'ふつうの貯金', type: 'savings' as const, monthly: 5, ret: 0.1, hint: '月5万円・銀行に預ける' },
+    { emoji: '💰', name: '普通預金（貯蓄）', type: 'savings' as const, monthly: 5, ret: 0.1, hint: '月5万円・銀行に預ける' },
   ];
 
   return (
     <div className="space-y-5">
-      <div className="text-xs text-gray-500">将来のためにお金を貯めたり、投資したりする計画を追加します。</div>
-
-      <div className="bg-amber-50 rounded-2xl p-4 text-sm text-amber-700">
-        💡 <b>投資って？</b><br />
-        銀行に預けるだけでなく、NISAやiDeCoを使うと<b>お金が少しずつ増えていく</b>可能性があります。
-        ここではその計画を登録できます。
-      </div>
+      <div className="text-xs text-gray-500">NISA・iDeCo・貯蓄など、資産形成の計画を登録します。将来の資産推移がシミュレーションされます。</div>
 
       <div className="space-y-2">
         {quickItems.map((item, i) => (
@@ -547,11 +541,11 @@ function SavingPage({ persons, investmentAccounts, onAddInvestmentAccount, onRem
 
       {investmentAccounts.length > 0 && (
         <div>
-          <div className="text-xs font-bold text-gray-500 mb-2">登録ずみ（{investmentAccounts.length}件）</div>
+          <div className="text-xs font-bold text-gray-500 mb-2">登録済み（{investmentAccounts.length}件）</div>
           {investmentAccounts.map((acc) => (
             <div key={acc.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 mb-1">
               <div><div className="text-xs font-bold">{acc.name}</div><div className="text-xs text-gray-400">月{acc.monthlyContribution}万円 ({acc.startAge}〜{acc.endAge}歳)</div></div>
-              <button onClick={() => onRemoveInvestmentAccount(acc.id)} className={delBtn}>消す</button>
+              <button onClick={() => onRemoveInvestmentAccount(acc.id)} className={delBtn}>削除</button>
             </div>
           ))}
         </div>
@@ -573,12 +567,12 @@ function OtherPage({ persons, skills, memos, macroAssumptions, onAddSkill, onRem
       {/* 前提条件 */}
       <div>
         <div className="text-sm font-bold text-gray-700 mb-2">⚙️ 計算の前提条件</div>
-        <div className="text-xs text-gray-400 mb-3">ふつうはこのままでOKです</div>
+        <div className="text-xs text-gray-400 mb-3">通常はデフォルト値のままで問題ありません</div>
         <div className="grid grid-cols-2 gap-3">
           <div><label className={label}>物価の上昇率（年%）</label><input className={input} type="number" step="0.1" value={macroAssumptions.inflationRate} onChange={(e) => onSetMacroAssumptions({ inflationRate: Number(e.target.value) })} /></div>
           <div><label className={label}>投資のリターン（年%）</label><input className={input} type="number" step="0.1" value={macroAssumptions.investmentReturn} onChange={(e) => onSetMacroAssumptions({ investmentReturn: Number(e.target.value) })} /></div>
           <div><label className={label}>年金をもらい始める歳</label><input className={input} type="number" value={macroAssumptions.pensionStartAge} onChange={(e) => onSetMacroAssumptions({ pensionStartAge: Number(e.target.value) })} /></div>
-          <div><label className={label}>何歳まで生きる想定？</label><input className={input} type="number" value={macroAssumptions.lifeExpectancy} onChange={(e) => onSetMacroAssumptions({ lifeExpectancy: Number(e.target.value) })} /></div>
+          <div><label className={label}>終了年齢生きる想定？</label><input className={input} type="number" value={macroAssumptions.lifeExpectancy} onChange={(e) => onSetMacroAssumptions({ lifeExpectancy: Number(e.target.value) })} /></div>
         </div>
       </div>
 
@@ -594,7 +588,7 @@ function OtherPage({ persons, skills, memos, macroAssumptions, onAddSkill, onRem
         {skills.map((s) => (
           <div key={s.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2 mt-1">
             <span className="text-xs">{s.targetAge}歳: {s.name}</span>
-            <button onClick={() => onRemoveSkill(s.id)} className={delBtn}>消す</button>
+            <button onClick={() => onRemoveSkill(s.id)} className={delBtn}>削除</button>
           </div>
         ))}
       </div>
@@ -613,7 +607,7 @@ function OtherPage({ persons, skills, memos, macroAssumptions, onAddSkill, onRem
         {memos.map((m) => (
           <div key={m.id} className="flex items-start justify-between bg-yellow-50 rounded-xl px-4 py-2 mt-1">
             <div><span className="text-xs text-gray-400">{m.age}歳:</span> <span className="text-xs">{m.content}</span></div>
-            <button onClick={() => onRemoveMemo(m.id)} className={delBtn}>消す</button>
+            <button onClick={() => onRemoveMemo(m.id)} className={delBtn}>削除</button>
           </div>
         ))}
       </div>

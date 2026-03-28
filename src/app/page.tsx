@@ -152,27 +152,27 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-sky-100 to-white flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-xl max-w-md w-full p-10 text-center">
-          <div className="text-6xl mb-4">🌈</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">ライフプランをつくろう</h1>
+          <div className="text-6xl mb-4">📊</div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">ライフプラン作成ツール</h1>
           <p className="text-sm text-gray-500 mb-2">
-            あなたの人生を「見える化」するツールです。
+            収入・支出・資産の将来推移を可視化します。
           </p>
           <p className="text-xs text-gray-400 mb-8">
-            お金のこと、仕事のこと、将来のこと——<br />
-            ぜんぶまとめてタイムラインで見られます。
+            いくつかの質問に答えるだけで、<br />
+            あなた専用のライフプランが自動で作成されます。
           </p>
           <div className="space-y-3">
             <button
               onClick={() => setShowWizard(true)}
               className="w-full py-4 bg-sky-500 text-white rounded-2xl hover:bg-sky-600 transition-all font-bold text-base shadow-lg shadow-sky-200"
             >
-              はじめる →
+              新しいプランを作成する
             </button>
             <button
               onClick={store.loadSampleData}
               className="w-full py-3 bg-gray-100 text-gray-600 rounded-2xl hover:bg-gray-200 transition-colors text-sm"
             >
-              まずはサンプルを見てみる
+              サンプルデータで確認する
             </button>
           </div>
         </div>
