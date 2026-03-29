@@ -39,10 +39,16 @@ export default function PlanSummary({
   let lifetimeTakeHome = 0;
   for (let a = 22; a < retireAge; a++) lifetimeTakeHome += getTakeHomeAtAge(primary.careerBlocks, a);
 
-  // 生涯支出
+  // 生涯支出（投資積立額も含む）
   let lifetimeExpense = 0;
   for (let a = 22; a <= lifeExpectancy; a++) {
     lifetimeExpense += getTotalExpenseAtAge(lifeEvents, housingLoans, recurringExpenses, a);
+    // 投資積立額も支出に含める
+    for (const acc of investmentAccounts) {
+      if (a >= acc.startAge && a < acc.endAge) {
+        lifetimeExpense += acc.monthlyContribution * 12;
+      }
+    }
   }
 
   // 老後

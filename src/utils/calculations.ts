@@ -401,13 +401,25 @@ export function getCumulativeData(
 
   for (let age = startAge; age <= endAge; age++) {
     const totalExpense = getTotalExpenseAtAge(lifeEvents, housingLoans, recurringExpenses, age);
+
+    // 投資の年間積立額を支出として計上（手取りから出ていくお金）
+    let investmentContributionAtAge = 0;
+    for (const acc of investmentAccounts) {
+      if (age >= acc.startAge && age < acc.endAge) {
+        investmentContributionAtAge += acc.monthlyContribution * 12;
+      }
+    }
+
+    // 投資残高（積立元本 + 運用益）
     const investmentValue = getInvestmentBalanceAtAge(investmentAccounts, age);
 
     const entry: Record<string, number | string> = { age };
     for (const scenario of scenarios) {
       if (activeScenarioIds.includes(scenario.id)) {
         const income = getTakeHomeAtAge(scenario.careerBlocks, age);
-        cumulative[scenario.name] += income - totalExpense;
+        // 手取りから支出と投資積立を引く → 残りの現金
+        cumulative[scenario.name] += income - totalExpense - investmentContributionAtAge;
+        // 現金残高 + 投資残高 = 純資産
         entry[scenario.name] = Math.round(cumulative[scenario.name] + investmentValue);
       }
     }

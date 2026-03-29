@@ -36,7 +36,12 @@ export default function IncomeChart({
     const loanPayment = getLoanPaymentAtAge(housingLoans, age);
     const recurring = getRecurringExpenseAtAge(recurringExpenses, age);
     const eventExp = lifeEvents.filter((e) => e.isExpense && e.age === age).reduce((s, e) => s + e.cost, 0);
-    entry.totalExpense = loanPayment + recurring + eventExp;
+    // 投資積立額も支出に含める
+    let investContrib = 0;
+    for (const acc of investmentAccounts) {
+      if (age >= acc.startAge && age < acc.endAge) investContrib += acc.monthlyContribution * 12;
+    }
+    entry.totalExpense = loanPayment + recurring + eventExp + investContrib;
     for (const sc of activeScenarios) {
       entry[`${sc.name}_手取り`] = getTakeHomeAtAge(sc.careerBlocks, age);
     }
