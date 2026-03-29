@@ -80,12 +80,14 @@ const DEFAULTS: WizardData = {
 };
 
 const STEPS = [
-  { emoji: '👤', title: '基本情報', color: 'sky' },
-  { emoji: '👨‍👩‍👧', title: '家族構成', color: 'pink' },
-  { emoji: '💼', title: 'キャリア', color: 'amber' },
-  { emoji: '🏠', title: '住まい', color: 'green' },
-  { emoji: '💰', title: '家計・資産形成', color: 'violet' },
-  { emoji: '📅', title: '将来のライフイベント', color: 'orange' },
+  { emoji: '👤', title: '基本情報' },
+  { emoji: '👨‍👩‍👧', title: '家族構成' },
+  { emoji: '💼', title: '現在の仕事' },
+  { emoji: '🔄', title: 'キャリアの変化' },
+  { emoji: '🏠', title: '住まい' },
+  { emoji: '💸', title: '毎月の支出' },
+  { emoji: '📈', title: '貯蓄・投資' },
+  { emoji: '📅', title: '将来のイベント' },
 ];
 
 export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
@@ -170,9 +172,7 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
                   <div className="mt-3">
                     <label className="text-xs text-gray-500">何人の予定ですか？</label>
                     <div className="flex gap-2 mt-1">
-                      {[1, 2, 3].map((n) => (
-                        <Chip key={n} active={d.moreChildrenCount === n} onClick={() => u({ moreChildrenCount: n })} label={`${n}人`} />
-                      ))}
+                      {[1, 2, 3].map((n) => <Chip key={n} active={d.moreChildrenCount === n} onClick={() => u({ moreChildrenCount: n })} label={`${n}人`} />)}
                     </div>
                   </div>
                 )}
@@ -180,7 +180,7 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
             )}
           </>}
 
-          {/* ===== Step 2: キャリア ===== */}
+          {/* ===== Step 2: 現在の仕事 ===== */}
           {step === 2 && <>
             <Q label="現在の働き方">
               <div className="grid grid-cols-3 gap-2">
@@ -202,7 +202,10 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
             <Q label="年収（税引き前）" hint={`月収換算で約${Math.round(d.income / 12)}万円`}>
               <Num value={d.income} onChange={(v) => u({ income: v })} suffix="万円/年" />
             </Q>
+          </>}
 
+          {/* ===== Step 3: キャリアの変化 ===== */}
+          {step === 3 && <>
             <Q label="転職の予定はありますか？">
               <YesNo value={d.planJobChange} onChange={(v) => u({ planJobChange: v })} />
               {d.planJobChange && (
@@ -233,8 +236,8 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
             </Q>
           </>}
 
-          {/* ===== Step 3: 住まい ===== */}
-          {step === 3 && <>
+          {/* ===== Step 4: 住まい ===== */}
+          {step === 4 && <>
             <Q label="現在の住居形態は？">
               <YesNo value={d.currentlyRenting} onChange={(v) => u({ currentlyRenting: v })} yesLabel="賃貸" noLabel="持ち家・その他" />
               {d.currentlyRenting && (
@@ -256,24 +259,10 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
             </Q>
           </>}
 
-          {/* ===== Step 4: 家計・資産形成 ===== */}
-          {step === 4 && <>
+          {/* ===== Step 5: 毎月の支出 ===== */}
+          {step === 5 && <>
             <Q label="月々の生活費はどの程度ですか？" hint="食費・光熱費・通信費・日用品など合計">
               <Num value={d.monthlyLiving} onChange={(v) => u({ monthlyLiving: v })} suffix="万円/月" />
-            </Q>
-
-            <Q label="月々の貯蓄額は？">
-              <Num value={d.monthlySaving} onChange={(v) => u({ monthlySaving: v })} suffix="万円/月" />
-            </Q>
-
-            <Q label="NISA（少額投資非課税制度）を利用していますか？" hint="運用益が非課税になる投資制度">
-              <YesNo value={d.hasNisa} onChange={(v) => u({ hasNisa: v })} yesLabel="利用中/開始予定" noLabel="利用しない" />
-              {d.hasNisa && <div className="mt-3"><label className="text-xs text-gray-500">毎月の積立額</label><Num value={d.nisaMonthly} onChange={(v) => u({ nisaMonthly: v })} suffix="万円/月" /></div>}
-            </Q>
-
-            <Q label="iDeCo（個人型確定拠出年金）を利用していますか？" hint="掛金が全額所得控除になる年金制度">
-              <YesNo value={d.hasIdeco} onChange={(v) => u({ hasIdeco: v })} yesLabel="利用中/開始予定" noLabel="利用しない" />
-              {d.hasIdeco && <div className="mt-3"><label className="text-xs text-gray-500">毎月の掛金</label><Num value={d.idecoMonthly} onChange={(v) => u({ idecoMonthly: v })} suffix="万円/月" /></div>}
             </Q>
 
             <Q label="生命保険に加入していますか？">
@@ -297,8 +286,25 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
             </Q>
           </>}
 
-          {/* ===== Step 5: 将来のライフイベント ===== */}
-          {step === 5 && <>
+          {/* ===== Step 6: 貯蓄・投資 ===== */}
+          {step === 6 && <>
+            <Q label="月々の貯蓄額は？">
+              <Num value={d.monthlySaving} onChange={(v) => u({ monthlySaving: v })} suffix="万円/月" />
+            </Q>
+
+            <Q label="NISA（少額投資非課税制度）を利用していますか？" hint="運用益が非課税になる投資制度">
+              <YesNo value={d.hasNisa} onChange={(v) => u({ hasNisa: v })} yesLabel="利用中/開始予定" noLabel="利用しない" />
+              {d.hasNisa && <div className="mt-3"><label className="text-xs text-gray-500">毎月の積立額</label><Num value={d.nisaMonthly} onChange={(v) => u({ nisaMonthly: v })} suffix="万円/月" /></div>}
+            </Q>
+
+            <Q label="iDeCo（個人型確定拠出年金）を利用していますか？" hint="掛金が全額所得控除になる年金制度">
+              <YesNo value={d.hasIdeco} onChange={(v) => u({ hasIdeco: v })} yesLabel="利用中/開始予定" noLabel="利用しない" />
+              {d.hasIdeco && <div className="mt-3"><label className="text-xs text-gray-500">毎月の掛金</label><Num value={d.idecoMonthly} onChange={(v) => u({ idecoMonthly: v })} suffix="万円/月" /></div>}
+            </Q>
+          </>}
+
+          {/* ===== Step 7: 将来のイベント ===== */}
+          {step === 7 && <>
             {!d.hasSpouse && (
               <Q label="結婚式の予定はありますか？">
                 <YesNo value={d.planWedding} onChange={(v) => u({ planWedding: v })} />
@@ -336,12 +342,12 @@ export default function WizardFlow({ onComplete, onSkip }: WizardFlowProps) {
               {d.planParentCare && <div className="mt-3"><label className="text-xs text-gray-500">ご自身が何歳頃から？</label><Num value={d.parentCareAge} onChange={(v) => u({ parentCareAge: v })} suffix="歳頃" /></div>}
             </Q>
 
-            {/* 完了メッセージ */}
+            {/* 完了 */}
             <div className="bg-sky-50 rounded-2xl p-5 space-y-2">
               <div className="text-sm font-bold text-sky-700">ご入力ありがとうございました</div>
               <div className="text-xs text-gray-600 space-y-1">
-                <div>入力いただいた情報をもとに、ライフプランを自動生成します。</div>
-                <div>生成後も自由に編集・追加が可能です。</div>
+                <div>入力内容をもとに、ライフプランを自動生成します。</div>
+                <div>生成後もタイムラインやリストをクリックして自由に編集できます。</div>
               </div>
             </div>
           </>}

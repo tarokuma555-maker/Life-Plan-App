@@ -8,10 +8,12 @@ import InputPanel from '@/components/InputPanel';
 import ExportButton from '@/components/ExportButton';
 import RetirementAnalysis from '@/components/RetirementAnalysis';
 import WizardFlow, { WizardData } from '@/components/WizardFlow';
+import EditModal, { EditTarget } from '@/components/EditModal';
 
 export default function Home() {
   const store = useAppStore();
   const [showWizard, setShowWizard] = useState(false);
+  const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
   const currentYear = new Date().getFullYear();
   const selfPerson = store.persons.find((p) => p.relation === 'self');
   const currentAge = selfPerson ? currentYear - selfPerson.birthYear : 0;
@@ -242,6 +244,7 @@ export default function Home() {
               onToggleCheckmark={store.toggleCheckmark}
               onLoadSample={store.loadSampleData}
               onResetAll={store.resetAll}
+              onEditItem={setEditTarget}
             />
           </div>
 
@@ -257,6 +260,12 @@ export default function Home() {
               housingLoans={store.housingLoans}
               recurringExpenses={store.recurringExpenses}
               currentYear={currentYear}
+              onEditCareerBlock={(block, scenarioId) => setEditTarget({ type: 'careerBlock', data: block, scenarioId })}
+              onEditLifeEvent={(event) => setEditTarget({ type: 'lifeEvent', data: event })}
+              onEditHousingLoan={(loan) => setEditTarget({ type: 'housingLoan', data: loan })}
+              onEditRecurringExpense={(expense) => setEditTarget({ type: 'recurringExpense', data: expense })}
+              onEditSkill={(skill) => setEditTarget({ type: 'skill', data: skill })}
+              onEditMemo={(memo) => setEditTarget({ type: 'memo', data: memo })}
             />
 
             {store.scenarios.length > 0 && store.activeScenarioIds.length > 0 && (
@@ -282,6 +291,26 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      <EditModal
+        target={editTarget}
+        onClose={() => setEditTarget(null)}
+        onSaveLifeEvent={store.updateLifeEvent}
+        onSaveRecurringExpense={store.updateRecurringExpense}
+        onSaveCareerBlock={store.updateCareerBlock}
+        onSaveHousingLoan={store.updateHousingLoan}
+        onSaveInvestmentAccount={store.updateInvestmentAccount}
+        onSaveSkill={store.updateSkill}
+        onSaveMemo={store.updateMemo}
+        onDeleteLifeEvent={store.removeLifeEvent}
+        onDeleteRecurringExpense={store.removeRecurringExpense}
+        onDeleteCareerBlock={store.removeCareerBlock}
+        onDeleteHousingLoan={store.removeHousingLoan}
+        onDeleteInvestmentAccount={store.removeInvestmentAccount}
+        onDeleteSkill={store.removeSkill}
+        onDeleteMemo={store.removeMemo}
+      />
     </div>
   );
 }

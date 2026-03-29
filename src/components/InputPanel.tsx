@@ -14,6 +14,7 @@ import {
   getIncomeAtAge, formatMoney,
 } from '@/utils/calculations';
 import CoverageChecklist from './CoverageChecklist';
+import type { EditTarget } from './EditModal';
 
 // ===== Types =====
 interface InputPanelProps {
@@ -51,6 +52,7 @@ interface InputPanelProps {
   onToggleCheckmark: (key: string) => void;
   onLoadSample: () => void;
   onResetAll: () => void;
+  onEditItem?: (target: EditTarget) => void;
 }
 
 type TopicKey = 'family' | 'work' | 'monthly' | 'house' | 'events' | 'saving' | 'check' | 'other';
@@ -197,7 +199,7 @@ function FamilyPage({ persons, onAddPerson, onRemovePerson }: InputPanelProps) {
 }
 
 // ===== 💼 しごと =====
-function WorkPage({ persons, scenarios, activeScenarioIds, onAddScenario, onRemoveScenario, onToggleScenario, onAddCareerBlock, onRemoveCareerBlock }: InputPanelProps) {
+function WorkPage({ persons, scenarios, activeScenarioIds, onAddScenario, onRemoveScenario, onToggleScenario, onAddCareerBlock, onRemoveCareerBlock, onEditItem }: InputPanelProps) {
   const [scenarioName, setScenarioName] = useState('');
   const [selectedScenario, setSelectedScenario] = useState('');
   const [personId, setPersonId] = useState(persons[0]?.id || '');
@@ -302,9 +304,9 @@ function WorkPage({ persons, scenarios, activeScenarioIds, onAddScenario, onRemo
         <div key={sc.id}>
           <div className="text-xs font-bold mb-1" style={{ color: sc.color }}>{sc.name}</div>
           {sc.careerBlocks.map((cb) => (
-            <div key={cb.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2 mb-1">
+            <div key={cb.id} onClick={() => onEditItem?.({ type: 'careerBlock', data: cb, scenarioId: sc.id })} className={`flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2 mb-1 ${onEditItem ? 'cursor-pointer hover:bg-sky-50 transition-colors' : ''}`}>
               <span className="text-xs">{cb.startAge}〜{cb.endAge}歳 {cb.company} {cb.annualIncome}万円/年</span>
-              <button onClick={() => onRemoveCareerBlock(sc.id, cb.id)} className={delBtn}>削除</button>
+              <span className="text-xs text-sky-400">編集</span>
             </div>
           ))}
         </div>
@@ -314,7 +316,7 @@ function WorkPage({ persons, scenarios, activeScenarioIds, onAddScenario, onRemo
 }
 
 // ===== 💸 毎月かかるお金 =====
-function MonthlyPage({ persons, recurringExpenses, onAddRecurringExpense, onRemoveRecurringExpense }: InputPanelProps) {
+function MonthlyPage({ persons, recurringExpenses, onAddRecurringExpense, onRemoveRecurringExpense, onEditItem, ...rest }: InputPanelProps) {
   const [name, setName] = useState('');
   const [startAge, setStartAge] = useState(22);
   const [endAge, setEndAge] = useState(80);
@@ -369,9 +371,9 @@ function MonthlyPage({ persons, recurringExpenses, onAddRecurringExpense, onRemo
           <div className="text-xs font-bold text-gray-500 mb-2">登録済み（{recurringExpenses.length}件）</div>
           <div className="space-y-1 max-h-48 overflow-y-auto">
             {recurringExpenses.map((e) => (
-              <div key={e.id} className={card}>
+              <div key={e.id} onClick={() => onEditItem?.({ type: 'recurringExpense', data: e })} className={`${card} ${onEditItem ? 'cursor-pointer hover:bg-sky-50 transition-colors' : ''}`}>
                 <span className="text-xs">{e.name} — 年{e.annualCost}万円 ({e.startAge}〜{e.endAge}歳)</span>
-                <button onClick={() => onRemoveRecurringExpense(e.id)} className={delBtn}>削除</button>
+                <span className="text-xs text-sky-400">編集</span>
               </div>
             ))}
           </div>
@@ -382,7 +384,7 @@ function MonthlyPage({ persons, recurringExpenses, onAddRecurringExpense, onRemo
 }
 
 // ===== 🏠 住まい =====
-function HousePage({ persons, scenarios, activeScenarioIds, housingLoans, onAddHousingLoan, onRemoveHousingLoan }: InputPanelProps) {
+function HousePage({ persons, scenarios, activeScenarioIds, housingLoans, onAddHousingLoan, onRemoveHousingLoan, onEditItem }: InputPanelProps) {
   const [name, setName] = useState('マイホーム');
   const [purchaseAge, setPurchaseAge] = useState(35);
   const [propertyPrice, setPropertyPrice] = useState(4000);
@@ -432,9 +434,9 @@ function HousePage({ persons, scenarios, activeScenarioIds, housingLoans, onAddH
       </div>
 
       {housingLoans.map((loan) => (
-        <div key={loan.id} className={card}>
+        <div key={loan.id} onClick={() => onEditItem?.({ type: 'housingLoan', data: loan })} className={`${card} ${onEditItem ? 'cursor-pointer hover:bg-sky-50 transition-colors' : ''}`}>
           <div><div className="text-xs font-bold">{loan.name}</div><div className="text-xs text-gray-400">{loan.purchaseAge}歳〜 月{calcMonthlyPayment(loan.loanAmount, loan.interestRate, loan.loanTermYears).toFixed(1)}万円</div></div>
-          <button onClick={() => onRemoveHousingLoan(loan.id)} className={delBtn}>削除</button>
+          <span className="text-xs text-sky-400">編集</span>
         </div>
       ))}
     </div>
@@ -442,7 +444,7 @@ function HousePage({ persons, scenarios, activeScenarioIds, housingLoans, onAddH
 }
 
 // ===== 🎉 人生のイベント =====
-function EventsPage({ persons, lifeEvents, onAddLifeEvent, onRemoveLifeEvent }: InputPanelProps) {
+function EventsPage({ persons, lifeEvents, onAddLifeEvent, onRemoveLifeEvent, onEditItem }: InputPanelProps) {
   const [age, setAge] = useState(30);
   const [title, setTitle] = useState('');
   const [cost, setCost] = useState(0);
@@ -498,9 +500,9 @@ function EventsPage({ persons, lifeEvents, onAddLifeEvent, onRemoveLifeEvent }: 
           <div className="text-xs font-bold text-gray-500 mb-2">登録済み（{lifeEvents.length}件）</div>
           <div className="space-y-1 max-h-48 overflow-y-auto">
             {lifeEvents.map((e) => (
-              <div key={e.id} className={card}>
+              <div key={e.id} onClick={() => onEditItem?.({ type: 'lifeEvent', data: e })} className={`${card} ${onEditItem ? 'cursor-pointer hover:bg-sky-50 transition-colors' : ''}`}>
                 <span className="text-xs">{e.age}歳: {e.title}{e.cost > 0 && <span className="text-gray-400 ml-1">{e.isExpense ? '-' : '+'}{e.cost}万</span>}</span>
-                <button onClick={() => onRemoveLifeEvent(e.id)} className={delBtn}>削除</button>
+                <span className="text-xs text-sky-400">編集</span>
               </div>
             ))}
           </div>
@@ -511,7 +513,7 @@ function EventsPage({ persons, lifeEvents, onAddLifeEvent, onRemoveLifeEvent }: 
 }
 
 // ===== 🐷 貯金・投資 =====
-function SavingPage({ persons, investmentAccounts, onAddInvestmentAccount, onRemoveInvestmentAccount }: InputPanelProps) {
+function SavingPage({ persons, investmentAccounts, onAddInvestmentAccount, onRemoveInvestmentAccount, onEditItem }: InputPanelProps) {
   const selfPerson = persons.find((p) => p.relation === 'self');
 
   const quickItems = [
@@ -543,9 +545,9 @@ function SavingPage({ persons, investmentAccounts, onAddInvestmentAccount, onRem
         <div>
           <div className="text-xs font-bold text-gray-500 mb-2">登録済み（{investmentAccounts.length}件）</div>
           {investmentAccounts.map((acc) => (
-            <div key={acc.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 mb-1">
+            <div key={acc.id} onClick={() => onEditItem?.({ type: 'investmentAccount', data: acc })} className={`flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 mb-1 ${onEditItem ? 'cursor-pointer hover:bg-sky-50 transition-colors' : ''}`}>
               <div><div className="text-xs font-bold">{acc.name}</div><div className="text-xs text-gray-400">月{acc.monthlyContribution}万円 ({acc.startAge}〜{acc.endAge}歳)</div></div>
-              <button onClick={() => onRemoveInvestmentAccount(acc.id)} className={delBtn}>削除</button>
+              <span className="text-xs text-sky-400">編集</span>
             </div>
           ))}
         </div>
@@ -555,7 +557,7 @@ function SavingPage({ persons, investmentAccounts, onAddInvestmentAccount, onRem
 }
 
 // ===== ⚙️ その他 =====
-function OtherPage({ persons, skills, memos, macroAssumptions, onAddSkill, onRemoveSkill, onAddMemo, onRemoveMemo, onSetMacroAssumptions }: InputPanelProps) {
+function OtherPage({ persons, skills, memos, macroAssumptions, onAddSkill, onRemoveSkill, onAddMemo, onRemoveMemo, onSetMacroAssumptions, onEditItem }: InputPanelProps) {
   const [skillName, setSkillName] = useState('');
   const [skillAge, setSkillAge] = useState(30);
   const [memoAge, setMemoAge] = useState(30);
@@ -586,9 +588,9 @@ function OtherPage({ persons, skills, memos, macroAssumptions, onAddSkill, onRem
           <button onClick={() => { if (skillName.trim() && selfPerson) { onAddSkill({ personId: selfPerson.id, name: skillName.trim(), targetAge: skillAge, cost: 0, note: '' }); setSkillName(''); } }} className="px-4 py-3 bg-sky-500 text-white rounded-xl text-xs font-bold whitespace-nowrap">追加</button>
         </div>
         {skills.map((s) => (
-          <div key={s.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2 mt-1">
+          <div key={s.id} onClick={() => onEditItem?.({ type: 'skill', data: s })} className={`flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2 mt-1 ${onEditItem ? 'cursor-pointer hover:bg-sky-50 transition-colors' : ''}`}>
             <span className="text-xs">{s.targetAge}歳: {s.name}</span>
-            <button onClick={() => onRemoveSkill(s.id)} className={delBtn}>削除</button>
+            <span className="text-xs text-sky-400">編集</span>
           </div>
         ))}
       </div>
@@ -605,9 +607,9 @@ function OtherPage({ persons, skills, memos, macroAssumptions, onAddSkill, onRem
           <button onClick={() => { if (memoContent.trim() && selfPerson) { onAddMemo({ personId: selfPerson.id, age: memoAge, content: memoContent.trim() }); setMemoContent(''); } }} className="px-4 py-3 bg-sky-500 text-white rounded-xl text-xs font-bold whitespace-nowrap">追加</button>
         </div>
         {memos.map((m) => (
-          <div key={m.id} className="flex items-start justify-between bg-yellow-50 rounded-xl px-4 py-2 mt-1">
+          <div key={m.id} onClick={() => onEditItem?.({ type: 'memo', data: m })} className={`flex items-start justify-between bg-yellow-50 rounded-xl px-4 py-2 mt-1 ${onEditItem ? 'cursor-pointer hover:bg-sky-50 transition-colors' : ''}`}>
             <div><span className="text-xs text-gray-400">{m.age}歳:</span> <span className="text-xs">{m.content}</span></div>
-            <button onClick={() => onRemoveMemo(m.id)} className={delBtn}>削除</button>
+            <span className="text-xs text-sky-400">編集</span>
           </div>
         ))}
       </div>

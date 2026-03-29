@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import {
   Person,
   Scenario,
+  CareerBlock,
   LifeEvent,
   Skill,
   Memo,
@@ -29,6 +30,12 @@ interface TimelineProps {
   housingLoans: HousingLoan[];
   recurringExpenses: RecurringExpense[];
   currentYear: number;
+  onEditCareerBlock?: (block: CareerBlock, scenarioId: string) => void;
+  onEditLifeEvent?: (event: LifeEvent) => void;
+  onEditHousingLoan?: (loan: HousingLoan) => void;
+  onEditRecurringExpense?: (expense: RecurringExpense) => void;
+  onEditSkill?: (skill: Skill) => void;
+  onEditMemo?: (memo: Memo) => void;
 }
 
 export default function Timeline({
@@ -41,6 +48,12 @@ export default function Timeline({
   housingLoans,
   recurringExpenses,
   currentYear,
+  onEditCareerBlock,
+  onEditLifeEvent,
+  onEditHousingLoan,
+  onEditRecurringExpense,
+  onEditSkill,
+  onEditMemo,
 }: TimelineProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const selfPerson = persons.find((p) => p.relation === 'self');
@@ -133,7 +146,8 @@ export default function Timeline({
                           return (
                             <div
                               key={block.id}
-                              className="absolute top-0 rounded-md flex flex-col items-center justify-center overflow-hidden text-white text-xs font-medium shadow-sm cursor-default"
+                              onClick={() => onEditCareerBlock?.(block, scenario.id)}
+                              className={`absolute top-0 rounded-md flex flex-col items-center justify-center overflow-hidden text-white text-xs font-medium shadow-sm ${onEditCareerBlock ? 'cursor-pointer hover:brightness-110 hover:shadow-md transition-all' : 'cursor-default'}`}
                               style={{
                                 left: block.startAge * CELL_WIDTH,
                                 width: (block.endAge - block.startAge) * CELL_WIDTH,
@@ -172,7 +186,8 @@ export default function Timeline({
                         return (
                           <div
                             key={event.id}
-                            className="absolute top-0 flex flex-col items-center"
+                            onClick={() => onEditLifeEvent?.(event)}
+                            className={`absolute top-0 flex flex-col items-center ${onEditLifeEvent ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
                             style={{ left: event.age * CELL_WIDTH + CELL_WIDTH / 2 - 40, width: 80 }}
                           >
                             <div className="w-3 h-3 rounded-full border-2 border-white shadow" style={{ backgroundColor: cat.color }} />
@@ -202,7 +217,8 @@ export default function Timeline({
                         return (
                           <div
                             key={loan.id}
-                            className="absolute top-0 rounded-md flex items-center justify-center overflow-hidden text-xs font-medium shadow-sm border-2 border-amber-400 bg-amber-50 text-amber-800"
+                            onClick={() => onEditHousingLoan?.(loan)}
+                            className={`absolute top-0 rounded-md flex items-center justify-center overflow-hidden text-xs font-medium shadow-sm border-2 border-amber-400 bg-amber-50 text-amber-800 ${onEditHousingLoan ? 'cursor-pointer hover:bg-amber-100 transition-colors' : ''}`}
                             style={{
                               left: loan.purchaseAge * CELL_WIDTH,
                               width: loan.loanTermYears * CELL_WIDTH,
@@ -235,7 +251,8 @@ export default function Timeline({
                         return (
                           <div
                             key={exp.id}
-                            className="absolute top-0 rounded flex items-center justify-center overflow-hidden text-xs shadow-sm"
+                            onClick={() => onEditRecurringExpense?.(exp)}
+                            className={`absolute top-0 rounded flex items-center justify-center overflow-hidden text-xs shadow-sm ${onEditRecurringExpense ? 'cursor-pointer hover:brightness-95 transition-all' : ''}`}
                             style={{
                               left: exp.startAge * CELL_WIDTH,
                               width: (exp.endAge - exp.startAge + 1) * CELL_WIDTH,
@@ -269,7 +286,8 @@ export default function Timeline({
                       {personSkills.map((skill) => (
                         <div
                           key={skill.id}
-                          className="absolute top-0 flex flex-col items-center"
+                          onClick={() => onEditSkill?.(skill)}
+                          className={`absolute top-0 flex flex-col items-center ${onEditSkill ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
                           style={{ left: skill.targetAge * CELL_WIDTH + CELL_WIDTH / 2 - 40, width: 80 }}
                         >
                           <div className="w-3 h-3 bg-amber-400 rotate-45 border-2 border-white shadow" />
@@ -296,6 +314,7 @@ export default function Timeline({
                       {personMemos.map((memo) => (
                         <div
                           key={memo.id}
+                          onClick={() => onEditMemo?.(memo)}
                           className="absolute top-0 group cursor-pointer"
                           style={{ left: memo.age * CELL_WIDTH + CELL_WIDTH / 2 - 8 }}
                         >
