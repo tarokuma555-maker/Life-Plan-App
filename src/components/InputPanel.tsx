@@ -56,6 +56,7 @@ interface InputPanelProps {
 }
 
 type TopicKey = 'family' | 'work' | 'monthly' | 'house' | 'events' | 'saving' | 'check' | 'other';
+type TabKey = 'people' | 'money' | 'life';
 
 // ===== Styles =====
 const input = 'w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:border-sky-400 focus:outline-none bg-white';
@@ -66,84 +67,89 @@ const card = 'bg-gray-50 rounded-xl px-4 py-3 flex items-center justify-between'
 
 // ===== Main =====
 export default function InputPanel(props: InputPanelProps) {
-  const [open, setOpen] = useState<TopicKey | null>(null);
+  const [tab, setTab] = useState<TabKey>('people');
+  const [openSection, setOpenSection] = useState<TopicKey | null>(null);
 
-  const topics: { key: TopicKey; emoji: string; title: string; hint: string; count: number }[] = [
-    { key: 'family', emoji: '👨‍👩‍👧', title: '家族構成', hint: '家族メンバーの登録・編集', count: props.persons.length },
-    { key: 'work', emoji: '💼', title: 'キャリア', hint: '職歴・将来のキャリア��ス', count: props.scenarios.reduce((n, s) => n + s.careerBlocks.length, 0) },
-    { key: 'monthly', emoji: '💸', title: '固定費・生活費', hint: '毎月の支出（保険・通信費等）', count: props.recurringExpenses.length },
-    { key: 'house', emoji: '🏠', title: '住まい', hint: '家賃・住宅ローン', count: props.housingLoans.length },
-    { key: 'events', emoji: '📅', title: 'ライフイベント', hint: '結婚・出産・車の購入など', count: props.lifeEvents.length },
-    { key: 'saving', emoji: '📈', title: '資産形成', hint: 'NISA・iDeCo・貯蓄', count: props.investmentAccounts.length },
-    { key: 'check', emoji: '✅', title: 'チェックリスト', hint: '対応状況の確認', count: 0 },
-    { key: 'other', emoji: '⚙️', title: 'その他の設定', hint: '資格・メモ・前提条件', count: props.skills.length + props.memos.length },
+  const TABS: { key: TabKey; label: string; emoji: string }[] = [
+    { key: 'people', label: '家族・仕事', emoji: '👤' },
+    { key: 'money', label: '収支・資産', emoji: '💰' },
+    { key: 'life', label: 'イベント', emoji: '📅' },
   ];
 
-  // Detail view
-  if (open) {
-    const topic = topics.find((t) => t.key === open)!;
-    return (
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <button onClick={() => setOpen(null)} className="w-full flex items-center gap-3 px-5 py-4 bg-gray-50 border-b hover:bg-gray-100 transition-colors">
-          <span className="text-gray-400 text-lg">←</span>
-          <span className="text-xl">{topic.emoji}</span>
-          <div className="text-left">
-            <div className="text-sm font-bold text-gray-800">{topic.title}</div>
-            <div className="text-xs text-gray-400">{topic.hint}</div>
-          </div>
-        </button>
-        <div className="p-5 max-h-[calc(100vh-200px)] overflow-y-auto">
-          {open === 'family' && <FamilyPage {...props} />}
-          {open === 'work' && <WorkPage {...props} />}
-          {open === 'monthly' && <MonthlyPage {...props} />}
-          {open === 'house' && <HousePage {...props} />}
-          {open === 'events' && <EventsPage {...props} />}
-          {open === 'saving' && <SavingPage {...props} />}
-          {open === 'check' && (
-            <CoverageChecklist
-              lifeEvents={props.lifeEvents} recurringExpenses={props.recurringExpenses}
-              skills={props.skills} memos={props.memos} housingLoans={props.housingLoans}
-              investmentAccounts={props.investmentAccounts} scenarios={props.scenarios}
-              manualCheckmarks={props.manualCheckmarks} onToggleCheckmark={props.onToggleCheckmark}
-              onSelectCategory={() => {}}
-            />
-          )}
-          {open === 'other' && <OtherPage {...props} />}
-        </div>
-      </div>
-    );
-  }
+  const sections: Record<TabKey, { key: TopicKey; emoji: string; title: string; count: number }[]> = {
+    people: [
+      { key: 'family', emoji: '👨‍👩‍👧', title: '家族構成', count: props.persons.length },
+      { key: 'work', emoji: '💼', title: 'キャリア', count: props.scenarios.reduce((n, s) => n + s.careerBlocks.length, 0) },
+      { key: 'other', emoji: '⚙️', title: '資格・メモ・前提条件', count: props.skills.length + props.memos.length },
+    ],
+    money: [
+      { key: 'monthly', emoji: '💸', title: '固定費・生活費', count: props.recurringExpenses.length },
+      { key: 'house', emoji: '🏠', title: '住まい・ローン', count: props.housingLoans.length },
+      { key: 'saving', emoji: '📈', title: '貯蓄・投資', count: props.investmentAccounts.length },
+    ],
+    life: [
+      { key: 'events', emoji: '📅', title: 'ライフイベント', count: props.lifeEvents.length },
+      { key: 'check', emoji: '✅', title: 'チェックリスト', count: 0 },
+    ],
+  };
 
-  // Menu
+  const renderSection = (key: TopicKey) => {
+    switch (key) {
+      case 'family': return <FamilyPage {...props} />;
+      case 'work': return <WorkPage {...props} />;
+      case 'monthly': return <MonthlyPage {...props} />;
+      case 'house': return <HousePage {...props} />;
+      case 'events': return <EventsPage {...props} />;
+      case 'saving': return <SavingPage {...props} />;
+      case 'other': return <OtherPage {...props} />;
+      case 'check': return (
+        <CoverageChecklist
+          lifeEvents={props.lifeEvents} recurringExpenses={props.recurringExpenses}
+          skills={props.skills} memos={props.memos} housingLoans={props.housingLoans}
+          investmentAccounts={props.investmentAccounts} scenarios={props.scenarios}
+          manualCheckmarks={props.manualCheckmarks} onToggleCheckmark={props.onToggleCheckmark}
+          onSelectCategory={() => {}}
+        />
+      );
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-      <div className="px-5 py-4 bg-gray-50 border-b">
-        <h2 className="text-base font-bold text-gray-800">プランの編集</h2>
-        <p className="text-xs text-gray-400 mt-0.5">タップして情報を追加・変更できます</p>
-      </div>
-
-      <div className="p-3">
-        {topics.map((t) => (
-          <button key={t.key} onClick={() => setOpen(t.key)}
-            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-sky-50 transition-all text-left group mb-1">
-            <span className="text-2xl">{t.emoji}</span>
-            <div className="flex-1">
-              <div className="text-sm font-bold text-gray-800 group-hover:text-sky-600">{t.title}</div>
-              <div className="text-xs text-gray-400">{t.hint}</div>
-            </div>
-            {t.count > 0 && <span className="text-xs bg-sky-100 text-sky-600 px-2.5 py-1 rounded-full font-bold">{t.count}</span>}
-            <span className="text-gray-300 group-hover:text-sky-400 text-lg">›</span>
+      {/* 3 Tabs */}
+      <div className="flex border-b">
+        {TABS.map((t) => (
+          <button key={t.key} onClick={() => { setTab(t.key); setOpenSection(null); }}
+            className={`flex-1 py-3 text-xs font-bold transition-colors ${tab === t.key ? 'text-sky-600 bg-sky-50 border-b-2 border-sky-500' : 'text-gray-400 hover:text-gray-600'}`}>
+            <span className="mr-1">{t.emoji}</span>{t.label}
           </button>
         ))}
       </div>
 
-      <div className="border-t p-4 space-y-2">
-        <button onClick={props.onLoadSample} className="w-full py-2.5 bg-sky-50 text-sky-600 rounded-xl text-sm font-medium hover:bg-sky-100">
-          サンプルデータで試す
-        </button>
-        <button onClick={props.onResetAll} className="w-full py-2 text-xs text-gray-400 hover:text-red-500">
-          すべてリセット
-        </button>
+      {/* Sections under active tab */}
+      <div className="max-h-[calc(100vh-180px)] overflow-y-auto">
+        {sections[tab].map((sec) => (
+          <div key={sec.key} className="border-b last:border-b-0">
+            <button onClick={() => setOpenSection(openSection === sec.key ? null : sec.key)}
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left">
+              <span>{sec.emoji}</span>
+              <span className="text-sm font-medium text-gray-700 flex-1">{sec.title}</span>
+              {sec.count > 0 && <span className="text-xs bg-sky-100 text-sky-600 px-2 py-0.5 rounded-full font-bold">{sec.count}</span>}
+              <span className={`text-gray-300 text-sm transition-transform ${openSection === sec.key ? 'rotate-90' : ''}`}>›</span>
+            </button>
+            {openSection === sec.key && (
+              <div className="px-4 pb-4">
+                {renderSection(sec.key)}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div className="border-t p-3 flex gap-2">
+        <button onClick={props.onLoadSample} className="flex-1 py-2 bg-sky-50 text-sky-600 rounded-xl text-xs font-medium hover:bg-sky-100">サンプル</button>
+        <button onClick={props.onResetAll} className="flex-1 py-2 bg-gray-50 text-gray-400 rounded-xl text-xs hover:text-red-500 hover:bg-red-50">リセット</button>
       </div>
     </div>
   );

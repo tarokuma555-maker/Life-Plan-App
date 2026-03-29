@@ -7,6 +7,7 @@ import IncomeChart from '@/components/IncomeChart';
 import InputPanel from '@/components/InputPanel';
 import ExportButton from '@/components/ExportButton';
 import RetirementAnalysis from '@/components/RetirementAnalysis';
+import PlanSummary from '@/components/PlanSummary';
 import WizardFlow, { WizardData } from '@/components/WizardFlow';
 import EditModal, { EditTarget } from '@/components/EditModal';
 
@@ -270,6 +271,34 @@ export default function Home() {
 
             {store.scenarios.length > 0 && store.activeScenarioIds.length > 0 && (
               <div id="charts-export" className="space-y-4">
+                {/* サマリーカード */}
+                <PlanSummary
+                  scenarios={store.scenarios}
+                  activeScenarioIds={store.activeScenarioIds}
+                  lifeEvents={store.lifeEvents}
+                  housingLoans={store.housingLoans}
+                  recurringExpenses={store.recurringExpenses}
+                  investmentAccounts={store.investmentAccounts}
+                  macroAssumptions={store.macroAssumptions}
+                  currentAge={currentAge}
+                />
+
+                {/* シナリオ切替 */}
+                {store.scenarios.length > 1 && (
+                  <div className="bg-white rounded-2xl shadow-lg p-4">
+                    <div className="text-xs text-gray-500 mb-2">表示するシナリオ</div>
+                    <div className="flex gap-2 flex-wrap">
+                      {store.scenarios.map((sc) => (
+                        <button key={sc.id} onClick={() => store.toggleScenarioActive(sc.id)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all border-2 ${store.activeScenarioIds.includes(sc.id) ? 'border-sky-400 bg-sky-50 text-sky-700' : 'border-gray-200 text-gray-400'}`}>
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: sc.color }} />
+                          {sc.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <IncomeChart
                   scenarios={store.scenarios}
                   activeScenarioIds={store.activeScenarioIds}
