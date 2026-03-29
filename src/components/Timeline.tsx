@@ -73,6 +73,11 @@ export default function Timeline({
 
   return (
     <div id="timeline-export" className="bg-white rounded-xl shadow-lg p-4 overflow-hidden">
+      {onEditLifeEvent && (
+        <div className="text-xs text-center text-sky-500 mb-2 bg-sky-50 rounded-lg py-1.5">
+          タイムライン上の項目をクリックすると編集できます
+        </div>
+      )}
       <div ref={scrollRef} className="overflow-x-auto pb-4">
         <div style={{ minWidth: AGE_RANGE.length * CELL_WIDTH + 120 }}>
           {/* Age Axis */}
