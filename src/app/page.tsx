@@ -10,6 +10,7 @@ import RetirementAnalysis from '@/components/RetirementAnalysis';
 import PlanSummary from '@/components/PlanSummary';
 import WizardFlow, { WizardData } from '@/components/WizardFlow';
 import EditModal, { EditTarget } from '@/components/EditModal';
+import AiChat, { PlanChange } from '@/components/AiChat';
 
 export default function Home() {
   const store = useAppStore();
@@ -135,6 +136,51 @@ export default function Home() {
   const handleSkipWizard = useCallback(() => {
     store.loadSampleData();
     setShowWizard(false);
+  }, [store]);
+
+  const handleApplyAiChanges = useCallback((changes: PlanChange[]) => {
+    const selfPerson = store.persons.find((p) => p.relation === 'self');
+    const pid = selfPerson?.id || '';
+    const scenarioId = store.scenarios[0]?.id || '';
+
+    for (const change of changes) {
+      const d = change.data as Record<string, unknown>;
+      if (change.action === 'add') {
+        switch (change.target) {
+          case 'lifeEvent':
+            store.addLifeEvent({
+              personId: pid, age: (d.age as number) || 30, title: (d.title as string) || '',
+              cost: (d.cost as number) || 0, category: 'other', majorCategory: 'life_events',
+              isExpense: d.isExpense !== false,
+            });
+            break;
+          case 'recurringExpense':
+            store.addRecurringExpense({
+              personId: pid, name: (d.name as string) || '', startAge: (d.startAge as number) || 22,
+              endAge: (d.endAge as number) || 65, annualCost: (d.annualCost as number) || 0,
+              category: 'living', majorCategory: 'expenses_living',
+            });
+            break;
+          case 'investmentAccount':
+            store.addInvestmentAccount({
+              personId: pid, name: (d.name as string) || '', type: 'other',
+              monthlyContribution: (d.monthlyContribution as number) || 0,
+              startAge: (d.startAge as number) || 25, endAge: (d.endAge as number) || 65,
+              expectedReturn: (d.expectedReturn as number) || 3,
+            });
+            break;
+          case 'careerBlock':
+            if (scenarioId) {
+              store.addCareerBlock(scenarioId, {
+                personId: pid, startAge: (d.startAge as number) || 22, endAge: (d.endAge as number) || 65,
+                company: (d.company as string) || '', position: (d.position as string) || '',
+                annualIncome: (d.annualIncome as number) || 0, color: '#3B82F6', workStyle: 'employee',
+              });
+            }
+            break;
+        }
+      }
+    }
   }, [store]);
 
   if (!store.loaded) {
@@ -339,6 +385,24 @@ export default function Home() {
         onDeleteInvestmentAccount={store.removeInvestmentAccount}
         onDeleteSkill={store.removeSkill}
         onDeleteMemo={store.removeMemo}
+      />
+
+      {/* AI Chat */}
+      <AiChat
+        planData={{
+          persons: store.persons,
+          lifeEvents: store.lifeEvents,
+          skills: store.skills,
+          scenarios: store.scenarios,
+          memos: store.memos,
+          housingLoans: store.housingLoans,
+          recurringExpenses: store.recurringExpenses,
+          investmentAccounts: store.investmentAccounts,
+          macroAssumptions: store.macroAssumptions,
+          activeScenarioIds: store.activeScenarioIds,
+          manualCheckmarks: store.manualCheckmarks,
+        }}
+        onApplyChanges={handleApplyAiChanges}
       />
     </div>
   );
