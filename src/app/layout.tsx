@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Career Life Plan - キャリアライフプラン年表",
-  description: "キャリアアドバイザー向けライフプラン可視化ツール",
+  title: "今の会社、続けるといくら損？｜転職コスト診断",
+  description: "今の会社に残り続けると、転職した場合と比べていくら損するのかを、項目を選ぶだけで見える化する診断ツール。",
 };
 
 export default function RootLayout({

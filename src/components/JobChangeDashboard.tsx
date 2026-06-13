@@ -15,7 +15,7 @@ interface IndustryProfile {
   changePremium: number; // 転職時の上乗せ率
   stayGrowth: number;     // 現職での年間昇給率
   changeGrowth: number;   // 転職後の年間昇給率
-  skillDecayRate: number; // スキル陳腐化の速さ
+  skillDecayRate: number; // スキルの古くなりやすさ
 }
 
 const INDUSTRIES: Record<string, IndustryProfile> = {
@@ -96,7 +96,7 @@ const INDUSTRIES: Record<string, IndustryProfile> = {
   },
 };
 
-// 職種 — 市場価値の補正
+// 職種 — 仕事の種類による年収の上がりやすさ
 const JOB_TYPES = [
   { value: 'engineer', label: 'エンジニア・技術', icon: '🛠️', mult: 1.10 },
   { value: 'consultant', label: '専門職・士業', icon: '🎖️', mult: 1.12 },
@@ -107,7 +107,7 @@ const JOB_TYPES = [
   { value: 'support', label: '販売・接客', icon: '🤝', mult: 0.88 },
 ];
 
-// 会社規模 — 昇給ペース・転職妙味の補正
+// 会社の大きさ — 昇給スピードと転職メリットの違い
 const COMPANY_SIZES = [
   { value: 'startup', label: 'スタートアップ', icon: '🚀', stayMod: 1.3, premiumMod: 1.1, changeGrowthMod: 1.2 },
   { value: 'small', label: '中小企業', icon: '🏪', stayMod: 0.6, premiumMod: 1.15, changeGrowthMod: 1.0 },
@@ -116,7 +116,7 @@ const COMPANY_SIZES = [
   { value: 'foreign', label: '外資系', icon: '🌐', stayMod: 1.1, premiumMod: 1.0, changeGrowthMod: 1.1 },
 ];
 
-// エリア — 年収水準の補正
+// 働く場所 — 地域による給料の相場の違い
 const REGIONS = [
   { value: 'tokyo', label: '東京23区', icon: '🗼', mult: 1.10 },
   { value: 'shutoken', label: '首都圏', icon: '🏙️', mult: 1.0 },
@@ -126,7 +126,7 @@ const REGIONS = [
   { value: 'remote', label: 'フルリモート', icon: '💻', mult: 1.05 },
 ];
 
-// 転職回数 — 市場での動きやすさの補正
+// 転職回数 — 転職市場での動きやすさ
 const JOB_CHANGE_COUNTS = [
   { value: 0, label: 'はじめて', icon: '🆕', premiumMod: 0.95 },
   { value: 1, label: '1回', icon: '1️⃣', premiumMod: 1.0 },
@@ -185,8 +185,8 @@ interface AnalysisInput {
 }
 
 interface AnalysisResult {
-  marketMedian: number;       // プロフィール補正後の市場中央値
-  baseMarketMedian: number;   // 業界×年齢の素の中央値
+  marketMedian: number;       // プロフィール補正後の相場（あなたと同じ条件の人の平均年収）
+  baseMarketMedian: number;   // 業界×年齢の素の相場
   expectedAfterChange: number;
   annualLoss: number;
   lifetimeLoss: number;
@@ -213,24 +213,24 @@ function analyze(input: AnalysisInput): AnalysisResult {
   const posOpt = POSITION_OPTIONS.find((p) => p.value === position) ?? POSITION_OPTIONS[0];
   const jcOpt = JOB_CHANGE_COUNTS.find((j) => j.value === jobChangeCount) ?? JOB_CHANGE_COUNTS[1];
 
-  // 業界×年齢の素の中央値
+  // 業界×年齢の素の相場
   const baseMarketMedian = interpolateMedian(profile, age);
-  // 職種・地域で補正した「あなたの市場価値の中央値」
+  // 職種・地域で補正した「あなたと同じ条件の人の平均年収（相場）」
   const marketMedian = Math.round(baseMarketMedian * jobOpt.mult * regionOpt.mult);
 
-  // 転職プレミアム（会社規模・転職回数・勤続年数で補正）
+  // 転職時の上乗せ率（会社規模・転職回数・勤続年数で変動）
   const changePremium =
     profile.changePremium *
     sizeOpt.premiumMod *
     jcOpt.premiumMod *
     (1 + Math.min(yearsAtCompany, 12) * 0.01);
 
-  // 転職後の想定年収 = 「現年収にプレミアム」 と 「市場中央値×役職」 の高い方
+  // 転職後の想定年収 = 「今の年収＋上乗せ」 と 「相場×役職」 の高い方
   const expectedAfterChange = Math.round(
     Math.max(currentSalary * (1 + changePremium), marketMedian * posOpt.mult)
   );
 
-  // 現職での実質昇給率（会社規模・長期在籍で鈍化）
+  // 現職での実際の昇給率（会社規模・長く在籍するほど鈍くなる）
   const stayGrowthPenalty = Math.max(0, (yearsAtCompany - 5) * 0.0008);
   const effectiveStayGrowth = Math.max(0.002, profile.stayGrowth * sizeOpt.stayMod - stayGrowthPenalty);
   // 転職後の昇給率
@@ -265,11 +265,11 @@ function analyze(input: AnalysisInput): AnalysisResult {
 
   const annualLoss = expectedAfterChange - currentSalary;
 
-  // 1年待つコスト = 初年度の差 + プレミアムの目減り分を生涯換算
+  // 1年待つコスト = 初年度の差 + 上乗せの目減り分を生涯換算
   let costIfWait1Year = Math.round(Math.max(annualLoss, 0) * 1.3);
   if (yearsToRetirement >= 2) {
     const lostFirstYear = Math.max(0, annualLoss);
-    const premiumErosion = expectedAfterChange * 0.03; // 1年遅れるとプレミアムが目減り
+    const premiumErosion = expectedAfterChange * 0.03; // 1年遅れると上乗せが目減り
     costIfWait1Year = Math.round(lostFirstYear + premiumErosion * (yearsToRetirement - 1) * 0.4);
     costIfWait1Year = Math.max(costIfWait1Year, Math.round(annualLoss * 1.3));
   }
@@ -281,7 +281,7 @@ function analyze(input: AnalysisInput): AnalysisResult {
     { years: 5, label: '5年後', cost: Math.round(costIfWait1Year * 5.8) },
   ];
 
-  // リスク指標
+  // リスク指標（0〜100。大きいほど危険）
   const skillDecay = Math.min(95, Math.round(profile.skillDecayRate * yearsAtCompany * 100 / 1.5 * (jobType === 'engineer' || jobType === 'creative' ? 1.2 : 1)));
   const stagnation = Math.min(95, Math.round(yearsAtCompany * 5 + Math.max(0, age - 35) * 1.5 + (sizeOpt.stayMod < 0.8 ? 15 : 0)));
   const careerNarrowing = Math.min(95, Math.round((age - 22) * 1.6 + yearsAtCompany * 1.5));
@@ -289,11 +289,31 @@ function analyze(input: AnalysisInput): AnalysisResult {
     ? Math.min(95, Math.round((marketMedian - currentSalary) / marketMedian * 160))
     : Math.max(5, 28 - Math.round((currentSalary - marketMedian) / marketMedian * 50));
 
+  const yearsText = yearsAtCompany >= 25 ? '20年以上' : yearsAtCompany >= 18 ? '15年以上' : `${yearsAtCompany}年`;
+
   const riskFactors: AnalysisResult['riskFactors'] = [
-    { label: 'スキル陳腐化リスク', value: skillDecay, description: `同じ環境${yearsAtCompany >= 18 ? '長期' : yearsAtCompany + '年'}で市場で求められるスキルとの差が拡大` },
-    { label: '年収停滞リスク', value: stagnation, description: `現職の昇給ペースは年${(effectiveStayGrowth * 100).toFixed(1)}%（転職後は年${(changeGrowth * 100).toFixed(1)}%）` },
-    { label: 'キャリア選択肢の減少', value: careerNarrowing, description: `${age}歳・勤続${yearsAtCompany}年。年齢が上がるほど転職の選択肢は狭まる` },
-    { label: '同世代との年収差', value: peerGap, description: `あなたの市場中央値${marketMedian}万円に対し ${currentSalary < marketMedian ? `${marketMedian - currentSalary}万円 下回る` : `${currentSalary - marketMedian}万円 上回る`}` },
+    {
+      label: 'スキルが古くなる',
+      value: skillDecay,
+      description: `同じ環境に${yearsText}いると、世の中で求められるスキルとのズレが広がります`,
+    },
+    {
+      label: '給料が上がりにくい',
+      value: stagnation,
+      description: `今の会社の昇給は年 約${(effectiveStayGrowth * 100).toFixed(1)}%。転職後なら年 約${(changeGrowth * 100).toFixed(1)}%まで上がります`,
+    },
+    {
+      label: '転職できる先が減っていく',
+      value: careerNarrowing,
+      description: `年齢が上がるほど応募できる求人は減ります（今 ${age}歳・勤続${yearsAtCompany}年）`,
+    },
+    {
+      label: '同年代より給料が低い',
+      value: peerGap,
+      description: currentSalary < marketMedian
+        ? `あなたの相場は ${marketMedian}万円。今の年収は それより ${marketMedian - currentSalary}万円 低い状態です`
+        : `あなたの相場は ${marketMedian}万円。今の年収は それより ${currentSalary - marketMedian}万円 高めです`,
+    },
   ];
 
   return {
@@ -332,17 +352,17 @@ function StatusSection<T extends string | number>({
   const current = options.find((o) => o.value === value);
   return (
     <div className="mb-5 last:mb-0">
-      <div className="flex items-baseline gap-2 mb-2">
+      <div className="flex items-baseline gap-2 mb-1">
         <span className="flex items-center justify-center w-5 h-5 rounded-full bg-gray-800 text-white text-[10px] font-bold flex-shrink-0">{step}</span>
         <span className="text-sm">{icon}</span>
         <span className="text-sm font-bold text-gray-800">{label}</span>
-        <span className="text-[11px] text-gray-400">{hint}</span>
         {current && (
           <span className="ml-auto text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
             {format ? format(value) : current.label}
           </span>
         )}
       </div>
+      <div className="text-[11px] text-gray-400 mb-2 pl-7">{hint}</div>
       <div className="flex flex-wrap gap-1.5">
         {options.map((opt) => (
           <button
@@ -363,23 +383,24 @@ function StatusSection<T extends string | number>({
   );
 }
 
-function LossCard({ label, value, sub, variant = 'loss' }: {
-  label: string; value: string; sub: string; variant?: 'loss' | 'gain' | 'warn';
+type Mood = 'bad' | 'good' | 'warn';
+
+function LossCard({ mood, tag, label, value, sub }: {
+  mood: Mood; tag: string; label: string; value: string; sub: string;
 }) {
-  const styles = {
-    loss: 'border-red-300 bg-gradient-to-br from-red-50 to-red-100',
-    gain: 'border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100',
+  const box = {
+    bad: 'border-red-300 bg-gradient-to-br from-red-50 to-red-100',
+    good: 'border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100',
     warn: 'border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100',
-  };
-  const textStyles = {
-    loss: 'text-red-700', gain: 'text-emerald-700', warn: 'text-amber-700',
-  };
+  }[mood];
+  const text = { bad: 'text-red-700', good: 'text-emerald-700', warn: 'text-amber-700' }[mood];
+  const pill = { bad: 'bg-red-500', good: 'bg-emerald-500', warn: 'bg-amber-500' }[mood];
+
   return (
-    <div className={`rounded-2xl border-2 p-4 ${styles[variant]}`}>
-      <div className="text-xs font-medium text-gray-500 mb-1">{label}</div>
-      <div className={`text-xl font-black ${textStyles[variant]} tracking-tight`}>
-        {variant === 'loss' || variant === 'warn' ? '▲ ' : '◎ '}{value}
-      </div>
+    <div className={`rounded-2xl border-2 p-4 ${box}`}>
+      <span className={`inline-block text-[10px] font-bold text-white px-2 py-0.5 rounded-full mb-2 ${pill}`}>{tag}</span>
+      <div className="text-xs font-medium text-gray-500 mb-0.5">{label}</div>
+      <div className={`text-xl font-black ${text} tracking-tight`}>{value}</div>
       <div className="text-xs text-gray-500 mt-1 leading-tight">{sub}</div>
     </div>
   );
@@ -388,12 +409,12 @@ function LossCard({ label, value, sub, variant = 'loss' }: {
 function RiskBar({ label, value, description }: { label: string; value: number; description: string }) {
   const color = value >= 70 ? 'bg-red-500' : value >= 40 ? 'bg-amber-500' : 'bg-emerald-500';
   const textColor = value >= 70 ? 'text-red-600' : value >= 40 ? 'text-amber-600' : 'text-emerald-600';
-  const levelLabel = value >= 70 ? '高リスク' : value >= 40 ? '中リスク' : '低リスク';
+  const levelLabel = value >= 70 ? '危険' : value >= 40 ? '注意' : 'まあ安心';
   return (
     <div className="mb-4">
       <div className="flex justify-between items-center mb-1">
         <span className="text-sm font-bold text-gray-700">{label}</span>
-        <span className={`text-xs font-bold ${textColor}`}>{levelLabel}（{value}）</span>
+        <span className={`text-xs font-bold ${textColor}`}>{levelLabel}（{value}/100）</span>
       </div>
       <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
         <div className={`h-3 rounded-full transition-all duration-700 ease-out ${color}`} style={{ width: `${value}%` }} />
@@ -437,6 +458,7 @@ export default function JobChangeDashboard() {
   const reg = REGIONS.find((r) => r.value === region)!;
   const pos = POSITION_OPTIONS.find((p) => p.value === position)!;
   const isUnderpaid = currentSalary < result.marketMedian;
+  const raisePct = Math.round(((result.expectedAfterChange - currentSalary) / currentSalary) * 100);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
@@ -446,92 +468,118 @@ export default function JobChangeDashboard() {
           <div className="flex items-center gap-3">
             <span className="text-2xl">💸</span>
             <div>
-              <h1 className="text-base font-black text-white tracking-tight">現状維持コスト診断</h1>
-              <p className="text-xs text-gray-400">今の会社にいることで、あなたが失っている金額</p>
+              <h1 className="text-base font-black text-white tracking-tight">今の会社、続けるといくら損？</h1>
+              <p className="text-xs text-gray-400">転職した場合とくらべて、あなたが受け取れていないお金を計算します</p>
             </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-5xl mx-auto px-4 py-6">
-        {/* 使い方の一言 */}
-        <div className="bg-white/10 border border-white/15 rounded-2xl px-4 py-3 mb-5 flex items-center gap-3">
-          <span className="text-lg">👇</span>
-          <p className="text-sm text-gray-200">
-            あてはまる項目をタップするだけ。<span className="font-bold text-white">選んだ瞬間に下のグラフと金額がリアルタイムで変化</span>します。
+        {/* 仕組みのやさしい説明 */}
+        <div className="bg-white rounded-3xl shadow-2xl p-6 mb-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">💡</span>
+            <h2 className="text-sm font-black text-gray-800">30秒でわかる！ このツールの仕組み</h2>
+          </div>
+          <p className="text-sm text-gray-600 leading-relaxed mb-4">
+            日本では、同じ会社にいると給料は<b>毎年ほんの少しずつ</b>しか上がりません。
+            でも転職すると、給料は<b className="text-red-600">「今のあなたの実力（市場価値）」で決まり直す</b>ので、一気に上がることがよくあります。
+            このツールは、下の項目を選ぶだけで「転職した場合」と「今の会社に残った場合」の年収をくらべ、
+            その差が一生でいくらになるかをグラフにします。
           </p>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="bg-gray-50 rounded-xl p-3">
+              <div className="text-lg mb-1">①</div>
+              <div className="text-xs text-gray-600 font-medium leading-tight">あてはまる項目を<br />タップ</div>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-3">
+              <div className="text-lg mb-1">②</div>
+              <div className="text-xs text-gray-600 font-medium leading-tight">下のグラフが<br />その場で変化</div>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-3">
+              <div className="text-lg mb-1">③</div>
+              <div className="text-xs text-gray-600 font-medium leading-tight">一生の損が<br />ひと目でわかる</div>
+            </div>
+          </div>
         </div>
 
         {/* ===== ステータス選択：基本情報 ===== */}
         <div className="bg-white/95 backdrop-blur rounded-3xl shadow-2xl p-6 mb-4">
           <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100">
             <span className="text-lg">🧑</span>
-            <h2 className="text-sm font-black text-gray-800">STEP 1 ── あなたの基本情報</h2>
+            <h2 className="text-sm font-black text-gray-800">STEP 1 ── あなたのことを教えて</h2>
           </div>
 
-          <StatusSection step={1} icon="🎂" label="年齢" hint="定年までの残り年数に影響" options={ageOptions} value={age} onChange={setAge} />
-          <StatusSection step={2} icon="🏢" label="業界" hint="年収水準と転職プレミアムに影響" options={industryOptions} value={industry} onChange={setIndustry} />
-          <StatusSection step={3} icon="🧰" label="職種" hint="市場での価値（年収倍率）に影響" options={JOB_TYPES} value={jobType} onChange={setJobType} />
-          <StatusSection step={4} icon="💴" label="現在の年収" hint="比較の基準になります" options={salaryOptions} value={currentSalary} onChange={setCurrentSalary} format={(v) => `${v}万`} />
+          <StatusSection step={1} icon="🎂" label="年齢" hint="65歳の定年まで、あと何年あるかを計算します" options={ageOptions} value={age} onChange={setAge} />
+          <StatusSection step={2} icon="🏢" label="業界" hint="どの業界で働いているか。業界ごとに給料の相場が大きく違います" options={industryOptions} value={industry} onChange={setIndustry} />
+          <StatusSection step={3} icon="🧰" label="職種" hint="どんな仕事をしているか。専門性が高い仕事ほど年収が上がりやすい傾向です" options={JOB_TYPES} value={jobType} onChange={setJobType} />
+          <StatusSection step={4} icon="💴" label="今の年収" hint="今もらっている年収（手取りではなく、ボーナス込みの総額）" options={salaryOptions} value={currentSalary} onChange={setCurrentSalary} format={(v) => `${v}万`} />
         </div>
 
         {/* ===== ステータス選択：働き方・環境 ===== */}
         <div className="bg-white/95 backdrop-blur rounded-3xl shadow-2xl p-6 mb-6">
           <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-100">
             <span className="text-lg">⚙️</span>
-            <h2 className="text-sm font-black text-gray-800">STEP 2 ── 働き方・環境（精度アップ）</h2>
+            <h2 className="text-sm font-black text-gray-800">STEP 2 ── 今の働き方は？（答えるほど正確になります）</h2>
           </div>
 
-          <StatusSection step={5} icon="📐" label="会社規模" hint="昇給ペースと転職メリットに影響" options={COMPANY_SIZES} value={companySize} onChange={setCompanySize} />
-          <StatusSection step={6} icon="📍" label="勤務エリア" hint="地域ごとの年収水準に影響" options={REGIONS} value={region} onChange={setRegion} />
-          <StatusSection step={7} icon="⏳" label="勤続年数" hint="長いほど昇給が鈍化しやすい" options={YEARS_OPTIONS} value={yearsAtCompany} onChange={setYearsAtCompany} />
-          <StatusSection step={8} icon="🎖️" label="役職" hint="転職後に狙えるポジションに影響" options={POSITION_OPTIONS} value={position} onChange={setPosition} />
-          <StatusSection step={9} icon="🔁" label="転職回数" hint="市場での動きやすさに影響" options={JOB_CHANGE_COUNTS} value={jobChangeCount} onChange={setJobChangeCount} />
+          <StatusSection step={5} icon="📐" label="会社の大きさ" hint="大きい会社ほど安定だけど昇給はゆっくり、など傾向が変わります" options={COMPANY_SIZES} value={companySize} onChange={setCompanySize} />
+          <StatusSection step={6} icon="📍" label="働く場所" hint="勤務地。東京など都市部は給料の相場が高めです" options={REGIONS} value={region} onChange={setRegion} />
+          <StatusSection step={7} icon="⏳" label="今の会社で働いた年数" hint="長く働くほど昇給がゆっくりになりがちです" options={YEARS_OPTIONS} value={yearsAtCompany} onChange={setYearsAtCompany} />
+          <StatusSection step={8} icon="🎖️" label="今の役職" hint="今の立場。上の役職ほど転職でも有利になります" options={POSITION_OPTIONS} value={position} onChange={setPosition} />
+          <StatusSection step={9} icon="🔁" label="これまでの転職回数" hint="転職が初めてでも大丈夫。市場での動きやすさの目安になります" options={JOB_CHANGE_COUNTS} value={jobChangeCount} onChange={setJobChangeCount} />
         </div>
 
         {/* プロフィール要約 */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-6 text-xs">
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-3 text-xs">
           {[`${age}歳`, `${ind.icon} ${ind.label}`, `${job.icon} ${job.label}`, `${size.icon} ${size.label}`, `${reg.icon} ${reg.label}`, `${pos.icon} ${pos.label}`, `年収${currentSalary}万円`].map((chip, i) => (
             <span key={i} className="bg-white/15 text-gray-200 px-3 py-1 rounded-full border border-white/10">{chip}</span>
           ))}
         </div>
+        <p className="text-center text-xs text-gray-400 mb-6">↓ この内容で診断した結果がこちら ↓</p>
 
         {/* ===== 結果：メインの損失数字 ===== */}
-        <div className="bg-gradient-to-r from-red-600 to-red-800 rounded-3xl shadow-2xl p-8 mb-6 text-center relative overflow-hidden">
-          <div className="relative">
-            <div className="text-sm font-medium text-red-200 mb-2">
-              このまま {result.yearsToRetirement}年間 今の会社にいると失う金額
-            </div>
-            <div className="text-5xl md:text-6xl font-black text-white tracking-tight mb-3">
-              {fmtMoney(result.lifetimeLoss)}
-            </div>
-            <div className="text-sm text-red-200">
-              転職した場合との生涯収入の差額（{age}歳〜65歳）
-            </div>
+        <div className="bg-gradient-to-r from-red-600 to-red-800 rounded-3xl shadow-2xl p-8 mb-3 text-center">
+          <div className="text-sm font-medium text-red-200 mb-2">
+            このまま定年（65歳）まで今の会社にいると…
+          </div>
+          <div className="text-5xl md:text-6xl font-black text-white tracking-tight mb-3">
+            {fmtMoney(result.lifetimeLoss)}
+          </div>
+          <div className="text-sm text-red-200">
+            転職した場合とくらべて、これだけ受け取れません（{age}歳〜65歳の合計）
           </div>
         </div>
+        <p className="text-center text-xs text-gray-400 mb-6">
+          ※「損」とは、転職していれば もらえたはずなのに もらえないお金のことです
+        </p>
 
         {/* サマリーカード */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <LossCard label="年間の機会損失" value={fmtMoney(result.annualLoss)} sub="転職初年度の年収差" variant="loss" />
-          <LossCard label="転職後の想定年収" value={fmtMoney(result.expectedAfterChange)} sub={`現年収 +${Math.round(((result.expectedAfterChange - currentSalary) / currentSalary) * 100)}%`} variant="gain" />
-          <LossCard label="1年待つコスト" value={fmtMoney(result.costOfWaitingOneYear)} sub="転職を1年遅らせた損失" variant="warn" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
+          <LossCard mood="bad" tag="損している" label="1年でいくら損してる？" value={fmtMoney(Math.max(0, result.annualLoss))} sub="転職すれば もらえたはずの差（1年分）" />
+          <LossCard mood="good" tag="増える" label="転職したらいくら？" value={fmtMoney(result.expectedAfterChange)} sub={`今より ${raisePct >= 0 ? '+' : ''}${raisePct}% の年収が狙えます`} />
+          <LossCard mood="warn" tag="注意" label="あと1年ためらうと？" value={fmtMoney(result.costOfWaitingOneYear)} sub="決断を1年延ばすと増える損" />
           <LossCard
-            label="あなたの市場価値との差"
+            mood={isUnderpaid ? 'bad' : 'good'}
+            tag={isUnderpaid ? '相場より低い' : '相場より高い'}
+            label="今の年収、相場とくらべて"
             value={`${currentSalary >= result.marketMedian ? '+' : ''}${currentSalary - result.marketMedian}万円`}
-            sub={`市場中央値 ${result.marketMedian}万円`}
-            variant={currentSalary >= result.marketMedian ? 'gain' : 'loss'}
+            sub={`あなたの相場（市場の平均）は ${result.marketMedian}万円`}
           />
         </div>
+        <p className="text-xs text-gray-400 mb-6 px-1">
+          「相場」＝ あなたと同じ業界・年齢・職種・地域の人が、平均的にもらっている年収のこと
+        </p>
 
         {/* 年収推移チャート */}
         <div className="bg-white rounded-3xl shadow-xl p-6 mb-6">
-          <h3 className="text-sm font-black text-gray-800 mb-1">📈 年収推移シミュレーション</h3>
-          <p className="text-xs text-gray-400 mb-4">
-            <span className="text-red-500 font-bold">━ 現職を続けた場合</span> ／
-            <span className="text-emerald-600 font-bold"> ━ 今転職した場合</span> ／
-            <span className="text-indigo-500 font-bold"> ┄ あなたの市場中央値</span>
+          <h3 className="text-sm font-black text-gray-800 mb-1">📈 これから年収はどう変わる？</h3>
+          <p className="text-xs text-gray-500 mb-1 leading-relaxed">
+            <span className="text-emerald-600 font-bold">上の緑の線</span>＝今 転職した場合 ／
+            <span className="text-red-500 font-bold"> 下の赤の線</span>＝今の会社に残った場合。
           </p>
+          <p className="text-xs text-gray-400 mb-4">この2本のすき間が、あなたが本当は受け取れるはずのお金です。</p>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={result.salaryProjection}>
               <defs>
@@ -549,22 +597,22 @@ export default function JobChangeDashboard() {
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${v}万`} />
               <Tooltip
                 formatter={(v, n) => [`${Number(v).toLocaleString()}万円`, n]}
-                labelFormatter={(l) => `${l}歳`}
+                labelFormatter={(l) => `${l}歳のとき`}
                 contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
               />
               <Legend />
-              <ReferenceLine x={age} stroke="#6B7280" strokeDasharray="5 5" label={{ value: '現在', fill: '#6B7280', fontSize: 11 }} />
-              <Area type="monotone" dataKey="stay" stroke="#EF4444" fill="url(#gradStay)" strokeWidth={2.5} name="現職を続けた場合" />
-              <Area type="monotone" dataKey="change" stroke="#10B981" fill="url(#gradChange)" strokeWidth={2.5} name="今転職した場合" />
-              <Area type="monotone" dataKey="market" stroke="#6366F1" fill="none" strokeWidth={1.5} strokeDasharray="6 4" name="市場中央値" />
+              <ReferenceLine x={age} stroke="#6B7280" strokeDasharray="5 5" label={{ value: '今', fill: '#6B7280', fontSize: 11 }} />
+              <Area type="monotone" dataKey="change" stroke="#10B981" fill="url(#gradChange)" strokeWidth={2.5} name="今 転職した場合" />
+              <Area type="monotone" dataKey="stay" stroke="#EF4444" fill="url(#gradStay)" strokeWidth={2.5} name="今の会社に残った場合" />
+              <Area type="monotone" dataKey="market" stroke="#6366F1" fill="none" strokeWidth={1.5} strokeDasharray="6 4" name="相場の平均" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
 
         {/* 累計収入差チャート */}
         <div className="bg-white rounded-3xl shadow-xl p-6 mb-6">
-          <h3 className="text-sm font-black text-gray-800 mb-1">💰 生涯収入の差（累計）</h3>
-          <p className="text-xs text-gray-400 mb-4">時間が経つほど差が広がる — 赤い領域があなたの「損失」の積み上がり</p>
+          <h3 className="text-sm font-black text-gray-800 mb-1">💰 損はこうやって積み重なる</h3>
+          <p className="text-xs text-gray-400 mb-4">年を取るほど赤い山が高くなります。＝ 損がどんどん増えていく、ということです。</p>
           <ResponsiveContainer width="100%" height={280}>
             <AreaChart data={result.cumulativeProjection}>
               <defs>
@@ -577,12 +625,12 @@ export default function JobChangeDashboard() {
               <XAxis dataKey="age" tick={{ fontSize: 11 }} tickFormatter={(v) => `${v}歳`} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => v >= 10000 ? `${(v / 10000).toFixed(1)}億` : `${v}万`} />
               <Tooltip
-                formatter={(v) => [fmtMoney(Number(v)), '累計損失額']}
-                labelFormatter={(l) => `${l}歳`}
+                formatter={(v) => [fmtMoney(Number(v)), 'ここまでの損の合計']}
+                labelFormatter={(l) => `${l}歳の時点`}
                 contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
               />
               <Legend />
-              <Area type="monotone" dataKey="diff" stroke="#EF4444" fill="url(#gradDiff)" strokeWidth={2.5} name="累計損失額" />
+              <Area type="monotone" dataKey="diff" stroke="#EF4444" fill="url(#gradDiff)" strokeWidth={2.5} name="ここまでの損の合計" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -590,18 +638,19 @@ export default function JobChangeDashboard() {
         {/* 遅らせるコスト + リスク分析 */}
         <div className="grid md:grid-cols-2 gap-6 mb-6">
           <div className="bg-white rounded-3xl shadow-xl p-6">
-            <h3 className="text-sm font-black text-gray-800 mb-1">⏰ 転職を遅らせるコスト</h3>
-            <p className="text-xs text-gray-400 mb-4">待てば待つほど損失が加速します</p>
+            <h3 className="text-sm font-black text-gray-800 mb-1">⏰ ためらうほど損が増える</h3>
+            <p className="text-xs text-gray-400 mb-4">転職を先延ばしにするほど、損の合計はふくらんでいきます。</p>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={result.waitingCost}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${v}万`} />
                 <Tooltip
-                  formatter={(v) => [fmtMoney(Number(v)), '累計損失']}
+                  formatter={(v) => [fmtMoney(Number(v)), '損の合計']}
+                  labelFormatter={(l) => `転職を ${l} に延ばすと`}
                   contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
                 />
-                <Bar dataKey="cost" radius={[8, 8, 0, 0]} name="累計損失額">
+                <Bar dataKey="cost" radius={[8, 8, 0, 0]} name="損の合計">
                   {result.waitingCost.map((_, idx) => (
                     <Cell key={idx} fill={['#FCA5A5', '#F87171', '#EF4444', '#DC2626'][idx]} />
                   ))}
@@ -611,8 +660,8 @@ export default function JobChangeDashboard() {
           </div>
 
           <div className="bg-white rounded-3xl shadow-xl p-6">
-            <h3 className="text-sm font-black text-gray-800 mb-1">⚠️ 現状維持リスク分析</h3>
-            <p className="text-xs text-gray-400 mb-4">今の会社にいることのリスクを多角的に評価（0〜100）</p>
+            <h3 className="text-sm font-black text-gray-800 mb-1">⚠️ 今の会社に残り続けると…</h3>
+            <p className="text-xs text-gray-400 mb-4">棒が長いほど「危険」。今の状況のリスクを4つの面でチェックしました。</p>
             {result.riskFactors.map((rf) => (
               <RiskBar key={rf.label} label={rf.label} value={rf.value} description={rf.description} />
             ))}
@@ -621,43 +670,52 @@ export default function JobChangeDashboard() {
 
         {/* まとめメッセージ */}
         <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-3xl shadow-2xl p-8 mb-6 text-center">
-          <div className="text-amber-400 text-sm font-bold mb-3">あなたの診断結果まとめ</div>
+          <div className="text-amber-400 text-sm font-bold mb-3">あなたの診断結果</div>
           <div className="text-white text-lg md:text-xl font-bold mb-4 leading-relaxed">
             {age}歳・{ind.label}・{job.label}・年収{currentSalary}万円のあなたは、<br />
-            <span className="text-red-400">毎月 約{Math.max(0, Math.round(result.annualLoss / 12)).toLocaleString()}万円</span>ずつ
-            機会損失が積み上がっています。
+            <span className="text-red-400">毎月およそ {Math.max(0, Math.round(result.annualLoss / 12)).toLocaleString()}万円</span>ずつ
+            「もらい損ね」が積み上がっています。
           </div>
           <div className="text-gray-400 text-sm leading-relaxed max-w-2xl mx-auto">
-            {result.yearsToRetirement}年後の定年時には、転職した場合と比べて
+            このまま定年を迎えると、転職した場合より
             <span className="text-red-400 font-bold"> {fmtMoney(result.lifetimeLoss)} </span>
-            の差になります。転職を1年遅らせるだけで
+            少なくなります。しかも転職を1年延ばすごとに、
             <span className="text-amber-400 font-bold"> {fmtMoney(result.costOfWaitingOneYear)} </span>
-            の追加損失が発生します。
-            {isUnderpaid && <>あなたの年収は市場中央値を <span className="text-red-400 font-bold">{result.marketMedian - currentSalary}万円</span> 下回っています。</>}
+            ずつ損が増えていきます。
+            {isUnderpaid && <>今のあなたの年収は、相場より <span className="text-red-400 font-bold">{result.marketMedian - currentSalary}万円</span> 低い状態です。</>}
           </div>
           <div className="mt-6 inline-block bg-red-600 text-white px-8 py-3 rounded-2xl font-bold text-base shadow-lg shadow-red-900/30">
-            転職市場での想定年収: {fmtMoney(result.expectedAfterChange)}
+            転職市場でのあなたの想定年収：{fmtMoney(result.expectedAfterChange)}
           </div>
         </div>
 
-        {/* 計算ロジックの説明（開閉式） */}
+        {/* 用語と計算のやさしい解説（開閉式） */}
         <div className="bg-white/95 rounded-2xl shadow-lg mb-8 overflow-hidden">
           <button
             onClick={() => setShowExplainer((v) => !v)}
             className="w-full flex items-center justify-between px-5 py-4 text-left"
           >
-            <span className="text-sm font-bold text-gray-700">❓ この診断の見方・計算のしくみ</span>
+            <span className="text-sm font-bold text-gray-700">❓ 言葉の意味と、計算のしくみをやさしく解説</span>
             <span className="text-gray-400 text-lg">{showExplainer ? '−' : '+'}</span>
           </button>
           {showExplainer && (
-            <div className="px-5 pb-5 text-xs text-gray-500 leading-relaxed space-y-2 border-t border-gray-100 pt-4">
-              <p>・<b>市場中央値</b>＝「業界×年齢」の年収目安に、職種・勤務エリアの補正をかけて算出しています。</p>
-              <p>・<b>転職後の想定年収</b>＝「今の年収＋転職プレミアム」と「市場中央値×役職」の高い方を採用。会社規模・転職回数・勤続年数でプレミアムが変動します。</p>
-              <p>・<b>現職の年収カーブ</b>は会社規模ごとの昇給率を反映。中小・大手は昇給が鈍化しやすく設定しています。</p>
-              <p>・<b>生涯損失</b>＝「転職した場合の累計年収」−「現職を続けた場合の累計年収」を定年（65歳）まで積み上げた額です。</p>
-              <p className="text-gray-400 pt-2 border-t border-gray-100">
-                ※ 本ツールは一般的な市場データをもとにした<b>概算シミュレーション</b>です。実際の年収・転職結果を保証するものではなく、キャリアを考えるきっかけとしてご活用ください。
-              </p>
+            <div className="px-5 pb-5 text-xs text-gray-600 leading-relaxed space-y-3 border-t border-gray-100 pt-4">
+              <div>
+                <p className="font-bold text-gray-700">🔹 「相場（市場価値）」ってなに？</p>
+                <p>あなたと同じ業界・年齢・職種・地域の人たちが、転職市場で平均的にもらっている年収のことです。「世間の平均的なあなたの値段」とイメージしてください。</p>
+              </div>
+              <div>
+                <p className="font-bold text-gray-700">🔹 なんで転職すると年収が上がるの？</p>
+                <p>今の会社の給料は、入社時の額をベースにゆっくり上がります。一方、転職するときは「今のあなたの実力」で値段が決まり直すので、相場まで一気に追いつくことが多いんです。</p>
+              </div>
+              <div>
+                <p className="font-bold text-gray-700">🔹 「損（もらい損ね）」ってどう計算してるの？</p>
+                <p>「転職した場合にもらえる年収」から「今の会社に残った場合の年収」を引いた差を、定年（65歳）まで毎年たし合わせた金額です。グラフの2本の線のすき間の面積、と考えるとわかりやすいです。</p>
+              </div>
+              <div>
+                <p className="font-bold text-gray-700">🔹 数字はどこまで正確？</p>
+                <p>一般的な市場データをもとにした<b>ざっくりの試算</b>です。実際の年収や転職結果を保証するものではありません。「自分は損しているかも？」と気づき、キャリアを考えるきっかけとして使ってください。</p>
+              </div>
             </div>
           )}
         </div>
