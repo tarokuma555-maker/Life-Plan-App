@@ -383,29 +383,6 @@ function StatusSection<T extends string | number>({
   );
 }
 
-type Mood = 'bad' | 'good' | 'warn';
-
-function LossCard({ mood, tag, label, value, sub }: {
-  mood: Mood; tag: string; label: string; value: string; sub: string;
-}) {
-  const box = {
-    bad: 'border-red-300 bg-gradient-to-br from-red-50 to-red-100',
-    good: 'border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100',
-    warn: 'border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100',
-  }[mood];
-  const text = { bad: 'text-red-700', good: 'text-emerald-700', warn: 'text-amber-700' }[mood];
-  const pill = { bad: 'bg-red-500', good: 'bg-emerald-500', warn: 'bg-amber-500' }[mood];
-
-  return (
-    <div className={`rounded-2xl border-2 p-4 ${box}`}>
-      <span className={`inline-block text-[10px] font-bold text-white px-2 py-0.5 rounded-full mb-2 ${pill}`}>{tag}</span>
-      <div className="text-xs font-medium text-gray-500 mb-0.5">{label}</div>
-      <div className={`text-xl font-black ${text} tracking-tight`}>{value}</div>
-      <div className="text-xs text-gray-500 mt-1 leading-tight">{sub}</div>
-    </div>
-  );
-}
-
 function RiskBar({ label, value, description }: { label: string; value: number; description: string }) {
   const color = value >= 70 ? 'bg-red-500' : value >= 40 ? 'bg-amber-500' : 'bg-emerald-500';
   const textColor = value >= 70 ? 'text-red-600' : value >= 40 ? 'text-amber-600' : 'text-emerald-600';
@@ -475,6 +452,41 @@ export default function JobChangeDashboard() {
         </div>
       </header>
 
+      {/* 診断結果（常に画面上部に固定表示） */}
+      <div className="sticky top-[60px] z-20 bg-gray-900/95 backdrop-blur-lg border-b border-gray-700/50 shadow-2xl">
+        <div className="max-w-5xl mx-auto px-3 py-2.5">
+          <div className="bg-gradient-to-r from-red-600 to-red-800 rounded-2xl p-3 mb-2 text-center">
+            <div className="text-[11px] font-medium text-red-200 mb-0.5">このまま定年（65歳）まで今の会社にいると…</div>
+            <div className="text-3xl md:text-4xl font-black text-white tracking-tight">{fmtMoney(result.lifetimeLoss)}</div>
+            <div className="text-[10px] text-red-200 mt-0.5">転職した場合とくらべて、これだけ受け取れません（{age}歳〜65歳の合計）</div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
+            <div className="rounded-xl border-2 border-red-300 bg-gradient-to-br from-red-50 to-red-100 p-2">
+              <span className="inline-block text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full bg-red-500 mb-0.5">損している</span>
+              <div className="text-[10px] text-gray-500">1年でいくら損してる？</div>
+              <div className="text-sm font-black text-red-700">{fmtMoney(Math.max(0, result.annualLoss))}</div>
+            </div>
+            <div className="rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100 p-2">
+              <span className="inline-block text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full bg-emerald-500 mb-0.5">増える</span>
+              <div className="text-[10px] text-gray-500">転職したらいくら？</div>
+              <div className="text-sm font-black text-emerald-700">{fmtMoney(result.expectedAfterChange)}</div>
+              <div className="text-[9px] text-emerald-600">今より{raisePct >= 0 ? '+' : ''}{raisePct}%</div>
+            </div>
+            <div className="rounded-xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-2">
+              <span className="inline-block text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full bg-amber-500 mb-0.5">注意</span>
+              <div className="text-[10px] text-gray-500">あと1年ためらうと？</div>
+              <div className="text-sm font-black text-amber-700">{fmtMoney(result.costOfWaitingOneYear)}</div>
+            </div>
+            <div className={`rounded-xl border-2 p-2 ${isUnderpaid ? 'border-red-300 bg-gradient-to-br from-red-50 to-red-100' : 'border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100'}`}>
+              <span className={`inline-block text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full mb-0.5 ${isUnderpaid ? 'bg-red-500' : 'bg-emerald-500'}`}>{isUnderpaid ? '相場より低い' : '相場より高い'}</span>
+              <div className="text-[10px] text-gray-500">相場とくらべて</div>
+              <div className={`text-sm font-black ${isUnderpaid ? 'text-red-700' : 'text-emerald-700'}`}>{currentSalary >= result.marketMedian ? '+' : ''}{currentSalary - result.marketMedian}万円</div>
+            </div>
+          </div>
+          <p className="text-[9px] text-gray-500 mt-1 text-center">※「損」＝転職していればもらえたお金 ／ 「相場」＝同条件の人の平均年収</p>
+        </div>
+      </div>
+
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* 仕組みのやさしい説明 */}
         <div className="bg-white rounded-3xl shadow-2xl p-6 mb-5">
@@ -537,40 +549,7 @@ export default function JobChangeDashboard() {
             <span key={i} className="bg-white/15 text-gray-200 px-3 py-1 rounded-full border border-white/10">{chip}</span>
           ))}
         </div>
-        <p className="text-center text-xs text-gray-400 mb-6">↓ この内容で診断した結果がこちら ↓</p>
-
-        {/* ===== 結果：メインの損失数字 ===== */}
-        <div className="bg-gradient-to-r from-red-600 to-red-800 rounded-3xl shadow-2xl p-8 mb-3 text-center">
-          <div className="text-sm font-medium text-red-200 mb-2">
-            このまま定年（65歳）まで今の会社にいると…
-          </div>
-          <div className="text-5xl md:text-6xl font-black text-white tracking-tight mb-3">
-            {fmtMoney(result.lifetimeLoss)}
-          </div>
-          <div className="text-sm text-red-200">
-            転職した場合とくらべて、これだけ受け取れません（{age}歳〜65歳の合計）
-          </div>
-        </div>
-        <p className="text-center text-xs text-gray-400 mb-6">
-          ※「損」とは、転職していれば もらえたはずなのに もらえないお金のことです
-        </p>
-
-        {/* サマリーカード */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
-          <LossCard mood="bad" tag="損している" label="1年でいくら損してる？" value={fmtMoney(Math.max(0, result.annualLoss))} sub="転職すれば もらえたはずの差（1年分）" />
-          <LossCard mood="good" tag="増える" label="転職したらいくら？" value={fmtMoney(result.expectedAfterChange)} sub={`今より ${raisePct >= 0 ? '+' : ''}${raisePct}% の年収が狙えます`} />
-          <LossCard mood="warn" tag="注意" label="あと1年ためらうと？" value={fmtMoney(result.costOfWaitingOneYear)} sub="決断を1年延ばすと増える損" />
-          <LossCard
-            mood={isUnderpaid ? 'bad' : 'good'}
-            tag={isUnderpaid ? '相場より低い' : '相場より高い'}
-            label="今の年収、相場とくらべて"
-            value={`${currentSalary >= result.marketMedian ? '+' : ''}${currentSalary - result.marketMedian}万円`}
-            sub={`あなたの相場（市場の平均）は ${result.marketMedian}万円`}
-          />
-        </div>
-        <p className="text-xs text-gray-400 mb-6 px-1">
-          「相場」＝ あなたと同じ業界・年齢・職種・地域の人が、平均的にもらっている年収のこと
-        </p>
+        <p className="text-center text-xs text-gray-400 mb-6">↓ 項目をタップすると、上の診断結果がリアルタイムで変わります ↓</p>
 
         {/* 年収推移チャート */}
         <div className="bg-white rounded-3xl shadow-xl p-6 mb-6">
