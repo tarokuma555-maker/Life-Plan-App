@@ -449,6 +449,15 @@ export default function JobChangeDashboard() {
               <p className="text-xs text-gray-400">転職した場合とくらべて、あなたが受け取れていないお金を計算します</p>
             </div>
           </div>
+          <a
+            href="https://hagiten.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-4 py-2 rounded-full border border-white/20 transition-all hover:scale-105 whitespace-nowrap"
+          >
+            <span>🏠</span>
+            <span>トップへ戻る</span>
+          </a>
         </div>
       </header>
 
