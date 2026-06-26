@@ -441,19 +441,16 @@ export default function JobChangeDashboard() {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
       {/* ヘッダー */}
       <header className="bg-gray-900/80 backdrop-blur border-b border-gray-700 sticky top-0 z-30">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xl flex-shrink-0">💸</span>
-            <div className="min-w-0">
-              <h1 className="text-sm font-black text-white tracking-tight truncate">今の会社、続けるといくら損？</h1>
-              <p className="text-[10px] text-gray-400 truncate">転職した場合とくらべて、受け取れていないお金を計算</p>
-            </div>
+        <div className="max-w-5xl mx-auto px-3 py-1.5 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-lg flex-shrink-0">💸</span>
+            <h1 className="text-xs font-black text-white tracking-tight truncate">今の会社、続けるといくら損？</h1>
           </div>
           <a
             href="https://hagiten.com/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-shrink-0 flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold px-3 py-1.5 rounded-full border border-white/20 transition-all hover:scale-105"
+            className="flex-shrink-0 flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold px-3 py-1 rounded-full border border-white/20 transition-all"
           >
             <span>🏠</span>
             <span>戻る</span>
@@ -462,37 +459,35 @@ export default function JobChangeDashboard() {
       </header>
 
       {/* 診断結果（常に画面上部に固定表示） */}
-      <div className="sticky top-[60px] z-20 bg-gray-900/95 backdrop-blur-lg border-b border-gray-700/50 shadow-2xl">
-        <div className="max-w-5xl mx-auto px-3 py-2.5">
-          <div className="bg-gradient-to-r from-red-600 to-red-800 rounded-2xl p-3 mb-2 text-center">
-            <div className="text-[11px] font-medium text-red-200 mb-0.5">このまま定年（65歳）まで今の会社にいると…</div>
-            <div className="text-3xl md:text-4xl font-black text-white tracking-tight">{fmtMoney(result.lifetimeLoss)}</div>
-            <div className="text-[10px] text-red-200 mt-0.5">転職した場合とくらべて、これだけ受け取れません（{age}歳〜65歳の合計）</div>
+      <div className="sticky top-[36px] z-20 bg-gray-900/95 backdrop-blur-lg border-b border-gray-700/50 shadow-2xl">
+        <div className="max-w-5xl mx-auto px-2 py-1.5">
+          <div className="bg-gradient-to-r from-red-600 to-red-800 rounded-xl p-2 mb-1.5 text-center">
+            <div className="text-[10px] font-medium text-red-200">このまま定年（65歳）まで今の会社にいると…</div>
+            <div className="text-2xl md:text-3xl font-black text-white tracking-tight leading-tight">{fmtMoney(result.lifetimeLoss)}</div>
+            <div className="text-[9px] text-red-200">転職した場合とくらべて受け取れない額（{age}歳〜65歳）</div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
-            <div className="rounded-xl border-2 border-red-300 bg-gradient-to-br from-red-50 to-red-100 p-2">
-              <span className="inline-block text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full bg-red-500 mb-0.5">損している</span>
-              <div className="text-[10px] text-gray-500">1年でいくら損してる？</div>
-              <div className="text-sm font-black text-red-700">{fmtMoney(Math.max(0, result.annualLoss))}</div>
+          <div className="grid grid-cols-4 gap-1">
+            <div className="rounded-lg border border-red-300 bg-gradient-to-br from-red-50 to-red-100 px-1.5 py-1">
+              <span className="inline-block text-[8px] font-bold text-white px-1 py-px rounded-full bg-red-500 leading-tight">損している</span>
+              <div className="text-[9px] text-gray-500 leading-tight mt-0.5">年間の損</div>
+              <div className="text-xs font-black text-red-700 leading-tight">{fmtMoney(Math.max(0, result.annualLoss))}</div>
             </div>
-            <div className="rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100 p-2">
-              <span className="inline-block text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full bg-emerald-500 mb-0.5">増える</span>
-              <div className="text-[10px] text-gray-500">転職したらいくら？</div>
-              <div className="text-sm font-black text-emerald-700">{fmtMoney(result.expectedAfterChange)}</div>
-              <div className="text-[9px] text-emerald-600">今より{raisePct >= 0 ? '+' : ''}{raisePct}%</div>
+            <div className="rounded-lg border border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100 px-1.5 py-1">
+              <span className="inline-block text-[8px] font-bold text-white px-1 py-px rounded-full bg-emerald-500 leading-tight">増える</span>
+              <div className="text-[9px] text-gray-500 leading-tight mt-0.5">転職後</div>
+              <div className="text-xs font-black text-emerald-700 leading-tight">{fmtMoney(result.expectedAfterChange)}</div>
             </div>
-            <div className="rounded-xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-2">
-              <span className="inline-block text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full bg-amber-500 mb-0.5">注意</span>
-              <div className="text-[10px] text-gray-500">あと1年ためらうと？</div>
-              <div className="text-sm font-black text-amber-700">{fmtMoney(result.costOfWaitingOneYear)}</div>
+            <div className="rounded-lg border border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 px-1.5 py-1">
+              <span className="inline-block text-[8px] font-bold text-white px-1 py-px rounded-full bg-amber-500 leading-tight">注意</span>
+              <div className="text-[9px] text-gray-500 leading-tight mt-0.5">1年待つと</div>
+              <div className="text-xs font-black text-amber-700 leading-tight">{fmtMoney(result.costOfWaitingOneYear)}</div>
             </div>
-            <div className={`rounded-xl border-2 p-2 ${isUnderpaid ? 'border-red-300 bg-gradient-to-br from-red-50 to-red-100' : 'border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100'}`}>
-              <span className={`inline-block text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full mb-0.5 ${isUnderpaid ? 'bg-red-500' : 'bg-emerald-500'}`}>{isUnderpaid ? '相場より低い' : '相場より高い'}</span>
-              <div className="text-[10px] text-gray-500">相場とくらべて</div>
-              <div className={`text-sm font-black ${isUnderpaid ? 'text-red-700' : 'text-emerald-700'}`}>{currentSalary >= result.marketMedian ? '+' : ''}{currentSalary - result.marketMedian}万円</div>
+            <div className={`rounded-lg border px-1.5 py-1 ${isUnderpaid ? 'border-red-300 bg-gradient-to-br from-red-50 to-red-100' : 'border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100'}`}>
+              <span className={`inline-block text-[8px] font-bold text-white px-1 py-px rounded-full leading-tight ${isUnderpaid ? 'bg-red-500' : 'bg-emerald-500'}`}>{isUnderpaid ? '低い' : '高い'}</span>
+              <div className="text-[9px] text-gray-500 leading-tight mt-0.5">相場比</div>
+              <div className={`text-xs font-black leading-tight ${isUnderpaid ? 'text-red-700' : 'text-emerald-700'}`}>{currentSalary >= result.marketMedian ? '+' : ''}{currentSalary - result.marketMedian}万</div>
             </div>
           </div>
-          <p className="text-[9px] text-gray-500 mt-1 text-center">※「損」＝転職していればもらえたお金 ／ 「相場」＝同条件の人の平均年収</p>
         </div>
       </div>
 
